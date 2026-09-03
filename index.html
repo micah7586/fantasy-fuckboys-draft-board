@@ -199,6 +199,19 @@
   .picklog .pname{ font-weight:600; flex:1; }
   .picklog .pteam{ font-size:11.5px; color:var(--ink-faint); }
 
+  .rec-item{ padding:12px 0; border-top:1px solid var(--line); }
+  .rec-item:first-child{ border-top:none; }
+  .rec-item .rec-meta{ display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap; }
+  .rec-item .rec-time{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-faint); }
+  .rec-item .rec-for{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:1px 6px; border-radius:99px; font-weight:600; }
+  .rec-item .rec-for.micah{ background:var(--micah-bg); color:var(--micah); }
+  .rec-item .rec-for.colby{ background:var(--colby-bg); color:var(--colby); }
+  .rec-item .rec-for.both{ background:var(--surface-2); color:var(--ink-faint); }
+  .rec-item .rec-trigger{ font-size:12px; color:var(--ink-faint); margin:0 0 4px; }
+  .rec-item .rec-headline{ font-size:15px; font-weight:600; color:var(--ink); margin:0 0 4px; }
+  .rec-item .rec-detail{ font-size:13px; line-height:1.55; color:var(--ink-soft); margin:0 0 6px; }
+  .rec-item .rec-srcs{ display:flex; flex-wrap:wrap; gap:5px; }
+
   footer{ padding:16px clamp(16px,4vw,40px) 30px; color:var(--ink-faint); font-size:11.5px; border-top:1px solid var(--line); }
 </style>
 </head>
@@ -247,6 +260,11 @@
       <h3 id="live-heading">Draft not started yet</h3>
       <p id="live-status-text">This board polls Sleeper's public draft feed directly from your browser every 5 seconds — no refresh needed, works for anyone with this link. Right now: 0 of 280 picks made.</p>
       <p style="margin-bottom:0;font-size:12.5px;color:var(--ink-faint)">On the clock: <span id="on-clock-text">check back once the draft starts</span>.</p>
+    </div>
+    <div class="card" id="rec-card">
+      <h3 style="display:flex;align-items:center;gap:8px">Claude's live recommendations <span class="live-pill" id="rec-pill" style="font-size:10px"><span class="dot"></span><span id="rec-pill-text">not connected</span></span></h3>
+      <p id="rec-empty-text" style="margin-bottom:0">No live recommendations pushed yet. During the draft, Claude watches this feed for your targets getting drafted, does a fresh research pass (news, injury status, updated projections), and pushes a new recommendation here — this panel checks for updates every ~10 seconds. Requires an active Claude session running the draft-night watch (see draft-research.md).</p>
+      <ul class="picklog" id="rec-feed" style="display:none"></ul>
     </div>
     <div class="card">
       <h3>Recent picks</h3>
@@ -758,6 +776,58 @@
   }
   pollDraft();
   setInterval(pollDraft, 5000);
+
+  // ---------- Live recommendations feed: Claude pushes JSON to the repo, this polls it ----------
+  var REC_FEED_URL = 'https://raw.githubusercontent.com/micah7586/fantasy-fuckboys-draft-board/master/data/rec-feed.json';
+  var recPill = document.getElementById('rec-pill');
+  var recPillText = document.getElementById('rec-pill-text');
+  var recEmptyText = document.getElementById('rec-empty-text');
+  var recFeedEl = document.getElementById('rec-feed');
+  var lastRecCount = -1;
+
+  function renderRecFeed(items){
+    if(!items.length){
+      recEmptyText.style.display = '';
+      recFeedEl.style.display = 'none';
+      return;
+    }
+    recEmptyText.style.display = 'none';
+    recFeedEl.style.display = '';
+    var sorted = items.slice().sort(function(a,b){ return new Date(b.ts) - new Date(a.ts); });
+    recFeedEl.innerHTML = sorted.map(function(r){
+      var forClass = r.for === 'micah' ? 'micah' : (r.for === 'colby' ? 'colby' : 'both');
+      var forLabel = r.for === 'micah' ? 'Micah' : (r.for === 'colby' ? 'Colby' : 'both');
+      var time = '';
+      try{ time = new Date(r.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }catch(e){}
+      var srcs = (r.sources||[]).map(function(s){ return '<span class="src-pill">'+s+'</span>'; }).join('');
+      return '<li class="rec-item">'
+        + '<div class="rec-meta"><span class="rec-time">'+time+'</span><span class="rec-for '+forClass+'">for '+forLabel+'</span></div>'
+        + (r.trigger ? '<p class="rec-trigger">Trigger: '+r.trigger+'</p>' : '')
+        + '<p class="rec-headline">'+(r.headline||'')+'</p>'
+        + (r.detail ? '<p class="rec-detail">'+r.detail+'</p>' : '')
+        + '<div class="rec-srcs">'+srcs+'</div>'
+        + '</li>';
+    }).join('');
+  }
+
+  async function pollRecFeed(){
+    try{
+      var res = await fetch(REC_FEED_URL + '?t=' + Date.now(), {cache:'no-store'});
+      if(!res.ok){ recPillText.textContent = 'no feed yet'; recPill.classList.remove('on'); return; }
+      var items = await res.json();
+      recPill.classList.add('on');
+      recPillText.textContent = items.length ? (items.length + ' update' + (items.length===1?'':'s')) : 'connected, quiet';
+      if(items.length !== lastRecCount){
+        lastRecCount = items.length;
+        renderRecFeed(items);
+      }
+    } catch(e){
+      recPillText.textContent = 'reconnecting…';
+      recPill.classList.remove('on');
+    }
+  }
+  pollRecFeed();
+  setInterval(pollRecFeed, 10000);
 })();
 </script>
 </body>
