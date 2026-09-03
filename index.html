@@ -417,6 +417,22 @@
 <script>
 (function(){
   var players = JSON.parse(document.getElementById('board-data').textContent);
+  var TEAMS = 10, ROUNDS = 28;
+  var SLOT_TO_ROSTER = {1:10,2:8,3:3,4:7,5:1,6:6,7:4,8:2,9:5,10:9};
+  function slotForPick(overall){
+    var round = Math.ceil(overall / TEAMS);
+    var posInRound = ((overall - 1) % TEAMS) + 1;
+    var slot = (round % 2 === 1) ? posInRound : (TEAMS + 1 - posInRound);
+    return {round:round, slot:slot, rosterId: SLOT_TO_ROSTER[slot]};
+  }
+  function nextPickForSlot(slot, afterOverall){
+    // Snake order alternates the gap between a slot's consecutive picks (e.g. slot 4 alternates
+    // 13-pick and 7-pick gaps) — a full 2*TEAMS window guarantees catching the next one.
+    for(var o = afterOverall + 1; o <= afterOverall + 2*TEAMS; o++){
+      if(slotForPick(o).slot === slot) return o;
+    }
+    return null;
+  }
 
   var TAGS = {
     "Christian McCaffrey": {t:"fade", note:"Largest redraft/dynasty gap on the board (dynasty RB11 despite elite draft position). Missed camp time (health/contract unconfirmed) compounds the age concern at 30.2. Real ADP has him gone by pick ~6 either way &mdash; the fade is about NOT reaching for him at 1.04/1.07, not about him falling to you.", srcs:["Stone Cold Fantasy board","DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)","FFC ADP (9/4)"]},
@@ -595,21 +611,28 @@
 
   function updatePlanLive(){
     var p = PEOPLE[current];
-    var nextOv = null;
-    for(var i=0;i<p.overalls.length;i++){ if(p.overalls[i] > totalPicksMade){ nextOv = p.overalls[i]; break; } }
+    var nextOv = null, inNamedPlan = false;
+    for(var i=0;i<p.overalls.length;i++){ if(p.overalls[i] > totalPicksMade){ nextOv = p.overalls[i]; inNamedPlan = true; break; } }
+    if(nextOv === null && totalPicksMade < TEAMS*ROUNDS){
+      // Past round 10 — no named targets left, but the pick sequence itself doesn't stop.
+      // Same slot math the live "on the clock" indicator uses, just solved for this person's fixed slot.
+      nextOv = nextPickForSlot(p.slot, totalPicksMade);
+    }
     var headingEl = document.getElementById('plan-live-heading');
     var textEl = document.getElementById('plan-live-text');
     headingEl.textContent = p.label + '’s status';
     if(totalPicksMade === 0){
       textEl.innerHTML = 'Draft hasn\'t started. ' + p.label + '\'s first pick is <b>overall #'+p.overalls[0]+'</b> (' + p.picks[0] + ').';
     } else if(nextOv === null){
-      textEl.textContent = 'All of ' + p.label + '\'s planned picks (through round 10) are in — check the Live Draft tab for anything after that.';
+      textEl.textContent = 'Draft complete — no more picks for ' + p.label + '.';
     } else {
       var picksUntil = nextOv - totalPicksMade - 1;
+      var whenLabel = inNamedPlan ? (p.picks[p.overalls.indexOf(nextOv)]) : ('round ' + slotForPick(nextOv).round);
+      var planNote = inNamedPlan ? '' : ' — past round 10, no named plan here; see "Available right now" below and the position tabs.';
       if(picksUntil <= 0){
-        textEl.innerHTML = '<b>' + p.label + ' is on the clock right now</b> — pick #' + (totalPicksMade+1) + ' overall.';
+        textEl.innerHTML = '<b>' + p.label + ' is on the clock right now</b> — pick #' + (totalPicksMade+1) + ' overall.' + (inNamedPlan ? '' : planNote);
       } else {
-        textEl.innerHTML = '<b>' + picksUntil + '</b> pick' + (picksUntil===1?'':'s') + ' until ' + p.label + '\'s next selection (overall #' + nextOv + ', ' + p.picks[p.overalls.indexOf(nextOv)] + ').';
+        textEl.innerHTML = '<b>' + picksUntil + '</b> pick' + (picksUntil===1?'':'s') + ' until ' + p.label + '\'s next selection (overall #' + nextOv + ', ' + whenLabel + ').' + planNote;
       }
     }
     var avail = players.filter(function(pl){ return typeof pl.sfAdjAdp === 'number' && !draftedNames[normName(pl.name)]; })
@@ -618,12 +641,14 @@
     var availEl = document.getElementById('plan-avail-text');
     if(totalPicksMade === 0){
       availEl.textContent = 'Pre-draft snapshot (no live picks yet) — top of the real-ADP board: ' + avail.slice(0,6).map(function(pl){ return pl.name; }).join(', ') + '.';
+    } else if(avail.length === 0){
+      availEl.textContent = 'Every player in this board\'s ~200-player pool is drafted — remaining picks are outside our researched data. Check Sleeper directly for who\'s left.';
     } else {
-      availEl.innerHTML = 'As of <b>' + totalPicksMade + '</b> picks made, closest-to-the-clock undrafted players by real ADP: ' + avail.map(function(pl){ return pl.name + ' ('+pl.position+', ~'+Math.round(pl.sfAdjAdp)+')'; }).join(', ') + '.';
+      availEl.innerHTML = 'As of <b>' + totalPicksMade + '</b> picks made, closest-to-the-clock undrafted players by real ADP: ' + avail.map(function(pl){ return pl.name + ' ('+pl.position+', ~'+Math.round(pl.sfAdjAdp)+')'; }).join(', ') + (totalPicksMade > 150 ? ' <i style="color:var(--ink-faint)">(this deep, most of the pool is untracked bench/taxi dart-throws — this list thins out fast)</i>' : '') + '.';
     }
     var rows = document.querySelectorAll('#plan-body tr');
     rows.forEach(function(tr){ tr.classList.remove('next'); });
-    if(nextOv !== null){
+    if(inNamedPlan && nextOv !== null){
       var idx = p.overalls.indexOf(nextOv);
       if(rows[idx]) rows[idx].classList.add('next');
     }
@@ -665,8 +690,6 @@
 
   // ---------- Live draft tracking: direct client-side polling of Sleeper's public API ----------
   var DRAFT_ID = '1387608791989628928';
-  var TEAMS = 10, ROUNDS = 28;
-  var SLOT_TO_ROSTER = {1:10,2:8,3:3,4:7,5:1,6:6,7:4,8:2,9:5,10:9};
   var ROSTER_INFO = {
     1:{owner:'nupper26', team:'nupper26'},
     2:{owner:'easttman', team:'Nailor? barely know her'},
@@ -694,13 +717,6 @@
   var picklogEl = document.getElementById('picklog');
   var rosterMicahEl = document.getElementById('roster-micah');
   var rosterColbyEl = document.getElementById('roster-colby');
-
-  function slotForPick(overall){
-    var round = Math.ceil(overall / TEAMS);
-    var posInRound = ((overall - 1) % TEAMS) + 1;
-    var slot = (round % 2 === 1) ? posInRound : (TEAMS + 1 - posInRound);
-    return {round:round, slot:slot, rosterId: SLOT_TO_ROSTER[slot]};
-  }
 
   function applyPicks(picks){
     draftedNames = {};
