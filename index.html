@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fuckboys Draft Board</title>
+<meta name="description" content="Live dual-team dynasty superflex draft dashboard for Micah and Colby — real ADP, expandable research, and instant pick tracking">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --paper:#f2f4f2; --surface:#ffffff; --surface-2:#e7ebe8; --line:#d3d9d4;
+    --ink:#1b211d; --ink-soft:#4d564e; --ink-faint:#7c877e;
+    --accent:#8a6a1f; --accent-ink:#5e4a16;
+    --qb:#a3691c; --rb:#1f7d68; --wr:#3e5aab; --te:#a2472c;
+    --fade:#a5402f; --fade-bg:#f6e3de; --pri:#25733f; --pri-bg:#dfefe1; --watch:#8a6a1f; --watch-bg:#f3ecd8;
+    --micah:#3e5aab; --micah-bg:#e3e8f6; --colby:#a2472c; --colby-bg:#f6e3de;
+    --live:#25733f; --live-bg:#dfefe1;
+    --shadow: 0 1px 2px rgba(20,25,20,.06), 0 6px 20px -8px rgba(20,25,20,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#14181a; --surface:#1b2023; --surface-2:#232a2d; --line:#333c3f;
+      --ink:#e9ede9; --ink-soft:#aab3ac; --ink-faint:#7c877e;
+      --accent:#d9ab55; --accent-ink:#e7c37e;
+      --qb:#d9a24e; --rb:#4fbfa2; --wr:#8ea3e8; --te:#e2825f;
+      --fade:#e2897a; --fade-bg:#3a2320; --pri:#7fcd93; --pri-bg:#1f3323; --watch:#d9ab55; --watch-bg:#332c1a;
+      --micah:#8ea3e8; --micah-bg:#232a3d; --colby:#e2825f; --colby-bg:#3a2320;
+      --live:#7fcd93; --live-bg:#1f3323;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14181a; --surface:#1b2023; --surface-2:#232a2d; --line:#333c3f;
+    --ink:#e9ede9; --ink-soft:#aab3ac; --ink-faint:#7c877e;
+    --accent:#d9ab55; --accent-ink:#e7c37e;
+    --qb:#d9a24e; --rb:#4fbfa2; --wr:#8ea3e8; --te:#e2825f;
+    --fade:#e2897a; --fade-bg:#3a2320; --pri:#7fcd93; --pri-bg:#1f3323; --watch:#d9ab55; --watch-bg:#332c1a;
+    --micah:#8ea3e8; --micah-bg:#232a3d; --colby:#e2825f; --colby-bg:#3a2320;
+    --live:#7fcd93; --live-bg:#1f3323;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'Public Sans', system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,.disp{ font-family:'Barlow Condensed', system-ui, sans-serif; text-transform:uppercase; letter-spacing:.02em; text-wrap:balance; }
+  .num{ font-family:'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  a{color:inherit}
+
+  header{ padding:20px clamp(16px,4vw,40px) 16px; border-bottom:1px solid var(--line); background:var(--surface); }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+  .title-row{ display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  h1{ margin:2px 0 4px; font-size:clamp(26px,4vw,40px); font-weight:700; line-height:.96; color:var(--ink); }
+  .sub{ color:var(--ink-soft); font-size:13.5px; max-width:62ch; }
+
+  /* person toggle */
+  .toggle{ display:inline-flex; background:var(--surface-2); border:1px solid var(--line); border-radius:99px; padding:3px; gap:2px; }
+  .toggle button{
+    appearance:none; border:none; background:none; cursor:pointer;
+    font-family:'Barlow Condensed', sans-serif; font-size:16px; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
+    padding:7px 16px; border-radius:99px; color:var(--ink-faint);
+  }
+  .toggle button.active[data-person="micah"]{ background:var(--micah-bg); color:var(--micah); }
+  .toggle button.active[data-person="colby"]{ background:var(--colby-bg); color:var(--colby); }
+  .toggle button:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .live-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.05em; text-transform:uppercase; font-weight:600;
+    padding:4px 10px; border-radius:99px; background:var(--surface-2); color:var(--ink-faint); border:1px solid var(--line);
+  }
+  .live-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--ink-faint); }
+  .live-pill.on{ background:var(--live-bg); color:var(--live); border-color:transparent; }
+  .live-pill.on .dot{ background:var(--live); box-shadow:0 0 0 0 var(--live); animation:pulse 1.6s infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(127,205,147,.5)} 70%{box-shadow:0 0 0 6px rgba(127,205,147,0)} 100%{box-shadow:0 0 0 0 rgba(127,205,147,0)} }
+
+  .facts{ display:flex; flex-wrap:wrap; gap:10px 28px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line); align-items:center; }
+  .fact{ display:flex; flex-direction:column; gap:1px; }
+  .fact .k{ font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); }
+  .fact .v{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--ink); }
+
+  .picks{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .pick-chip{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:3px 8px; border-radius:3px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-soft); }
+  .pick-chip.done{ text-decoration:line-through; opacity:.5; }
+
+  nav{ position:sticky; top:0; z-index:10; display:flex; gap:2px; background:var(--surface); border-bottom:1px solid var(--line); padding:0 clamp(16px,4vw,40px); overflow-x:auto; }
+  nav button{ appearance:none; border:none; background:none; font-family:'Barlow Condensed', sans-serif; font-size:16px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--ink-faint); padding:11px 14px 9px; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  nav button:hover{ color:var(--ink); }
+  nav button.active{ color:var(--pos-c); border-bottom-color:var(--pos-c); }
+  nav button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  nav button[data-pos="LIVE"]{ --pos-c:var(--live); }
+  nav button[data-pos="QB"]{ --pos-c:var(--qb); } nav button[data-pos="RB"]{ --pos-c:var(--rb); }
+  nav button[data-pos="WR"]{ --pos-c:var(--wr); } nav button[data-pos="TE"]{ --pos-c:var(--te); }
+  nav button[data-pos="PLAN"]{ --pos-c:var(--accent); }
+  nav button[data-pos="LEGEND"]{ margin-left:auto; --pos-c:var(--accent); }
+  nav button[data-pos="GLOSS"]{ --pos-c:var(--accent); }
+  nav button[data-pos="SOURCES"]{ --pos-c:var(--accent); }
+
+  main{ padding:20px clamp(16px,4vw,40px) 60px; max-width:1180px; margin:0 auto; }
+  .tabpane{ display:none; } .tabpane.active{ display:block; }
+
+  .pos-head{ display:flex; align-items:baseline; gap:10px; margin:18px 0 10px; flex-wrap:wrap; }
+  .pos-head h2{ font-size:25px; margin:0; color:var(--pos-c); }
+  .pos-head .note{ font-size:12.5px; color:var(--ink-faint); font-family:'Public Sans'; }
+  [data-pos-section="QB"] .pos-head{ --pos-c:var(--qb); } [data-pos-section="RB"] .pos-head{ --pos-c:var(--rb); }
+  [data-pos-section="WR"] .pos-head{ --pos-c:var(--wr); } [data-pos-section="TE"] .pos-head{ --pos-c:var(--te); }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:16px 18px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .card h3{ font-size:19px; margin:0 0 8px; color:var(--accent-ink); }
+  .card p{ font-size:13.5px; line-height:1.6; color:var(--ink-soft); margin:0 0 8px; }
+  .card p:last-child{ margin-bottom:0; }
+
+  .tier-block{ background:var(--surface); border:1px solid var(--line); border-radius:6px; margin-bottom:10px; box-shadow:var(--shadow); overflow:hidden; }
+  .tier-label{ display:flex; align-items:center; gap:8px; padding:6px 12px; background:var(--surface-2); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); border-bottom:1px solid var(--line); }
+  .tier-label b{ color:var(--ink-soft); font-weight:600; }
+
+  table{ width:100%; border-collapse:collapse; }
+  tr.prow + tr.prow td, tr.prow + tr.detail-row td{ border-top:1px solid var(--line); }
+  td{ padding:7px 10px; font-size:13.5px; vertical-align:middle; }
+  td.rank{ width:36px; color:var(--ink-faint); font-size:12px; }
+  td.name{ font-weight:600; }
+  td.adp{ width:78px; color:var(--ink-soft); font-size:12px; text-align:right; white-space:nowrap; }
+  td.team{ color:var(--ink-soft); font-size:12px; width:40px; }
+  td.bye{ width:50px; color:var(--ink-faint); font-size:11.5px; text-align:right; }
+  td.tag{ text-align:right; white-space:nowrap; }
+
+  tr.prow{ cursor:pointer; }
+  tr.prow:hover td{ background:var(--surface-2); }
+  tr.prow td.name{ position:relative; padding-left:20px; }
+  tr.prow td.name::before{ content:"\203A"; position:absolute; left:7px; top:50%; transform:translateY(-50%) rotate(0deg); color:var(--ink-faint); font-size:12px; transition:transform .15s ease; }
+  tr.prow.open td.name::before{ transform:translateY(-50%) rotate(90deg); color:var(--accent-ink); }
+  tr.prow.open td{ background:var(--surface-2); }
+  tr.prow.drafted td{ opacity:.4; }
+  tr.prow.drafted td.name{ text-decoration:line-through; }
+  tr.prow.drafted td.name::before{ content:"\2713"; color:var(--live); }
+  .by-chip{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; padding:1px 5px; border-radius:3px; margin-left:6px; vertical-align:1px; }
+  .by-chip.micah{ background:var(--micah-bg); color:var(--micah); }
+  .by-chip.colby{ background:var(--colby-bg); color:var(--colby); }
+
+  .chip{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.04em; padding:2px 7px; border-radius:99px; text-transform:uppercase; font-weight:600; }
+  .chip.fade{ color:var(--fade); background:var(--fade-bg); }
+  .chip.pri{ color:var(--pri); background:var(--pri-bg); }
+  .chip.watch{ color:var(--watch); background:var(--watch-bg); }
+  .chip.gap{ color:var(--accent-ink); background:var(--watch-bg); }
+
+  .detail-row{ display:none; } .detail-row.open{ display:table-row; }
+  .detail-row td{ padding:0; border-top:none; }
+  .detail-wrap{ padding:12px 10px 16px 28px; font-size:13px; color:var(--ink-soft); display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:10px 20px; border-bottom:1px solid var(--line); background:var(--surface-2); }
+  .detail-wrap .stat{ display:flex; flex-direction:column; gap:1px; }
+  .detail-wrap .stat .k{ font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; }
+  .detail-wrap .stat .v{ font-size:13px; color:var(--ink); font-weight:600; }
+  .detail-wrap .reasoning{ grid-column:1/-1; font-size:13.5px; line-height:1.55; color:var(--ink-soft); margin:2px 0 0; }
+  .detail-wrap .reasoning b{ color:var(--ink); }
+  .detail-wrap .gapnote{ grid-column:1/-1; font-size:12.5px; line-height:1.5; color:var(--accent-ink); margin:0; padding:6px 8px; background:var(--watch-bg); border-radius:4px; }
+  .detail-wrap .srcs{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+  .src-pill{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.02em; padding:2px 8px; border-radius:4px; background:var(--surface); border:1px solid var(--line); color:var(--ink-faint); }
+
+  .legend, .gloss, .sources{ display:none; } .legend.active, .gloss.active, .sources.active{ display:block; }
+  .term-list .term{ padding:12px 0; border-top:1px solid var(--line); } .term-list .term:first-child{ border-top:none; padding-top:0; }
+  .term-list h4{ margin:0 0 5px; font-size:18px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--ink); font-family:'Barlow Condensed', sans-serif; }
+  .term-list .def{ margin:0 0 5px; font-size:13.5px; line-height:1.5; color:var(--ink-soft); }
+  .term-list .analogy{ margin:0; font-size:13.5px; line-height:1.5; color:var(--ink-faint); }
+  .term-list .analogy b{ color:var(--accent-ink); font-weight:600; }
+  .legend ul{ margin:0; padding-left:18px; font-size:14px; line-height:1.7; color:var(--ink-soft); }
+  .legend li b{ color:var(--ink); }
+
+  .src-list .item{ padding:14px 0; border-top:1px solid var(--line); } .src-list .item:first-child{ border-top:none; padding-top:0; }
+  .src-list h4{ margin:0 0 4px; font-size:17px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--ink); font-family:'Barlow Condensed', sans-serif; display:flex; align-items:center; gap:8px; }
+  .src-status{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:99px; font-weight:600; }
+  .src-status.live{ color:var(--pri); background:var(--pri-bg); } .src-status.down{ color:var(--fade); background:var(--fade-bg); } .src-status.static{ color:var(--watch); background:var(--watch-bg); }
+  .src-list .def{ margin:0 0 4px; font-size:13.5px; line-height:1.55; color:var(--ink-soft); }
+  .src-list .used-for{ margin:0; font-size:12.5px; line-height:1.5; color:var(--ink-faint); } .src-list .used-for b{ color:var(--accent-ink); font-weight:600; }
+
+  .process-steps{ counter-reset:step; list-style:none; margin:0; padding:0; }
+  .process-steps li{ counter-increment:step; position:relative; padding:0 0 16px 34px; font-size:13.5px; line-height:1.55; color:var(--ink-soft); }
+  .process-steps li:last-child{ padding-bottom:0; }
+  .process-steps li::before{ content:counter(step); position:absolute; left:0; top:0; width:22px; height:22px; border-radius:50%; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .process-steps b{ color:var(--ink); }
+
+  .plan-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .plan-table th{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); padding:8px 10px; border-bottom:1px solid var(--line); }
+  .plan-table td{ padding:10px; vertical-align:top; border-bottom:1px solid var(--line); line-height:1.5; }
+  .plan-table td.pk{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink); white-space:nowrap; }
+  .plan-table td.ov{ color:var(--ink-faint); font-size:12px; white-space:nowrap; }
+  .plan-table tr.next td{ background:var(--live-bg); }
+
+  .roster-cols{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:640px){ .roster-cols{ grid-template-columns:1fr; } }
+  .roster-col h4{ margin:0 0 8px; font-size:17px; font-family:'Barlow Condensed'; }
+  .roster-list{ list-style:none; margin:0; padding:0; font-size:13px; }
+  .roster-list li{ padding:6px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:8px; }
+  .roster-list li:first-child{ border-top:none; }
+  .roster-list .empty{ color:var(--ink-faint); font-style:italic; padding:6px 0; }
+
+  .picklog{ list-style:none; margin:0; padding:0; font-size:13px; max-height:420px; overflow-y:auto; }
+  .picklog li{ padding:8px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:10px; align-items:center; }
+  .picklog li:first-child{ border-top:none; }
+  .picklog .pno{ font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); font-size:11.5px; width:44px; flex:none; }
+  .picklog .pname{ font-weight:600; flex:1; }
+  .picklog .pteam{ font-size:11.5px; color:var(--ink-faint); }
+
+  footer{ padding:16px clamp(16px,4vw,40px) 30px; color:var(--ink-faint); font-size:11.5px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Fantasy Fuckboys &middot; Dynasty Superflex Startup &middot; Live Draft Dashboard</div>
+  <div class="title-row">
+    <div>
+      <h1>Draft Cheat Sheet</h1>
+      <p class="sub">One shared board, two drafters. Toggle to switch whose picks, plan, and roster you're looking at. Click any player to expand full reasoning, real ADP, and sources.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div class="toggle" role="tablist" aria-label="Switch drafter">
+        <button data-person="micah" class="active">Micah</button>
+        <button data-person="colby">Colby</button>
+      </div>
+      <span class="live-pill" id="live-pill"><span class="dot"></span><span id="live-pill-text">connecting&hellip;</span></span>
+    </div>
+  </div>
+  <div class="facts">
+    <div class="fact"><span class="k">Draft</span><span class="v">Sat Sep 5, 10:30 PM ET</span></div>
+    <div class="fact"><span class="k">Format</span><span class="v">10-tm &middot; SF/2QB &middot; 4pt pass &middot; PPR</span></div>
+    <div class="fact"><span class="k" id="slot-label">Slot</span><span class="v" id="slot-value">4 of 10</span></div>
+    <div class="fact"><span class="k">Rounds</span><span class="v">28, snake</span></div>
+    <div class="fact"><span class="k">Team</span><span class="v" id="team-value">Salvation Army (micah7586)</span></div>
+  </div>
+  <div class="picks" id="picks-row" aria-label="Picks, rounds 1-10"></div>
+</header>
+
+<nav>
+  <button data-pos="LIVE">Live draft</button>
+  <button data-pos="QB">QB</button>
+  <button data-pos="RB">RB</button>
+  <button data-pos="WR">WR</button>
+  <button data-pos="TE">TE</button>
+  <button data-pos="PLAN">Draft plan</button>
+  <button data-pos="LEGEND">Read this first</button>
+  <button data-pos="GLOSS">Learn the board</button>
+  <button data-pos="SOURCES">Sources &amp; process</button>
+</nav>
+
+<main>
+  <div class="tabpane" data-pos="LIVE">
+    <div class="card">
+      <h3 id="live-heading">Draft not started yet</h3>
+      <p id="live-status-text">This board polls Sleeper's public draft feed directly from your browser every 5 seconds — no refresh needed, works for anyone with this link. Right now: 0 of 280 picks made.</p>
+      <p style="margin-bottom:0;font-size:12.5px;color:var(--ink-faint)">On the clock: <span id="on-clock-text">check back once the draft starts</span>.</p>
+    </div>
+    <div class="card">
+      <h3>Recent picks</h3>
+      <ul class="picklog" id="picklog"><li class="roster-list empty" style="border:none">No picks yet &mdash; check back once the draft starts.</li></ul>
+    </div>
+    <div class="card">
+      <h3>Rosters so far</h3>
+      <div class="roster-cols">
+        <div class="roster-col"><h4 style="color:var(--micah)">Micah &middot; Salvation Army</h4><ul class="roster-list" id="roster-micah"><li class="empty">No picks yet</li></ul></div>
+        <div class="roster-col"><h4 style="color:var(--colby)">Colby &middot; Burger Slinger</h4><ul class="roster-list" id="roster-colby"><li class="empty">No picks yet</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabpane" data-pos="SOURCES">
+    <div class="card">
+      <h3>Where every number on this page comes from</h3>
+      <p>Four layers now, stacked: a <b style="color:var(--ink)">redraft points board</b> for tier grouping, a <b style="color:var(--ink)">real market ADP feed</b> for actual draft-order timing, a <b style="color:var(--ink)">dynasty valuation source</b> for the 2027+ view, and a <b style="color:var(--ink)">prospect/injury layer</b> for close calls. The tags and the ADP-corrected draft plan exist specifically to mark where these disagree.</p>
+    </div>
+    <div class="card src-list">
+      <div class="item">
+        <h4>Sleeper's public API (polled directly by this page) <span class="src-status live">live</span></h4>
+        <p class="def">Ground truth for league mechanics — roster IDs, draft slots (Micah = slot 4, Colby/TGSeal = slot 7, confirmed from the draft object's <code>draft_order</code>/<code>slot_to_roster_id</code>, not assumed), pick sequence, and the actual live pick feed. Sleeper's API is public, needs no auth, and serves open CORS headers (confirmed directly, not assumed) — so this page fetches <code>/v1/draft/&lt;id&gt;/picks</code> straight from your browser, no backend or Claude session required to keep it live.</p>
+        <p class="used-for"><b>Used for:</b> both drafters' pick sequences below, and the entire Live Draft tab.</p>
+      </div>
+      <div class="item">
+        <h4>Stone Cold Fantasy 2026 superflex board <span class="src-status static">static, 2026-09-02</span></h4>
+        <p class="def">A redraft-points-shaped ranking — this is where "rank" and "tier" on every row come from. Important correction (2026-09-04): this rank is <b style="color:var(--ink)">not draft order</b>. It's a projected-production ranking, and it doesn't track real ADP well even directionally — e.g. it ranked Puka Nacua 16th, while real market ADP has him going ~pick 3. Rank/tier still groups players by expected value correctly; it should never be read as "when he'll be drafted."</p>
+        <p class="used-for"><b>Used for:</b> tier grouping and the base ordering within each position tab. No longer used to predict availability — see ADP below.</p>
+      </div>
+      <div class="item">
+        <h4>FantasyFootballCalculator ADP (10-team, PPR) <span class="src-status static">static pull, 2026-09-04</span></h4>
+        <p class="def">Real observed draft behavior — actual average draft position from real online drafts, not a points projection. This is what actually answers "will X be there at pick Y." <b style="color:var(--ink)">Caveat: this feed is 1QB-format ADP</b> — no true superflex/2QB ADP source exists in the available tools. For RB/WR/TE this is used directly (their draft order doesn't shift much with SF format). For QB, a documented heuristic curve is layered on top (see below) — flagged everywhere it's used, never presented as raw data.</p>
+        <p class="used-for"><b>Used for:</b> the "Market ADP" and "SF-adjusted ADP" figures in every player's expand panel, and the entire rebuilt Draft Plan tab.</p>
+      </div>
+      <div class="item">
+        <h4>SF-adjusted QB timing curve <span class="src-status static">heuristic, not observed data</span></h4>
+        <p class="def">Superflex leagues draft QBs much earlier than 1QB ADP suggests (two starting slots instead of one). No tool here provides real 2QB ADP, so QB order is taken from 1QB ADP (a reasonable proxy for relative QB quality) and then compressed onto an early-pick curve — QB1 &asymp; pick 4, roughly one additional startable QB coming off the board every 3-6 picks through the first five rounds, tapering after. This is a transparent, labeled estimate, not a fact — expect real draft-night variance around it.</p>
+        <p class="used-for"><b>Used for:</b> every QB's "SF-adjusted ADP" figure and the Draft Plan's QB timing calls. Treat as directional, re-check the live board when a QB run starts.</p>
+      </div>
+      <div class="item">
+        <h4>DynastyProcess <code>values-players.csv</code> <span class="src-status static">static, 2026-08-28</span></h4>
+        <p class="def">Open dynasty-value CSV, hand-compared against redraft rank for ~35 players to produce the original fade/prioritize/age-watch tags.</p>
+        <p class="used-for"><b>Used for:</b> the original tag calls, later confirmed/quantified by StatHead.</p>
+      </div>
+      <div class="item">
+        <h4>StatHead MCP <span class="src-status live">live, in-session</span></h4>
+        <p class="def">Dynasty superflex position ranks + age for 190/201 board players, the 2026 rookie prospect model, an early 2027 rookie-class model (current college underclassmen), and future rookie-pick trade values (a 2027 Early 1st is worth ~6,992 on today's superflex board — right between Caleb Williams and Joe Burrow).</p>
+        <p class="used-for"><b>Used for:</b> dynasty position rank in every expand panel, all tag reasoning, and the 2027+ planning section in draft-research.md.</p>
+      </div>
+      <div class="item">
+        <h4><code>nfl_mcp</code> (Sleeper / ESPN / FantasyCalc / nflverse / weather) <span class="src-status down">not connected this session</span></h4>
+        <p class="def">Caught the Josh Jacobs status change in an earlier session. This session the connection failed outright. Retry before the draft; WebSearch is the fallback for a late close-call check.</p>
+        <p class="used-for"><b>Used for:</b> the Jacobs update and the original camp-injury sweep, both already baked into the tags below.</p>
+      </div>
+      <div class="item">
+        <h4>KeepTradeCut <span class="src-status down">deliberately not used</span></h4>
+        <p class="def">ToS forbids scraping — not automated here on principle.</p>
+        <p class="used-for"><b>Used for:</b> nothing automated.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>How the live tracking actually works</h3>
+      <p>This is a plain static page, hosted on Vercel, not a Claude artifact — that was a deliberate switch. Claude's artifact platform can host a live shared data store, but it either requires disabling public link sharing (so only people signed into the same Claude organization can open it) or a Claude session actively relaying picks in the background. Neither fit "Colby just opens a link." A static site sidesteps both problems:</p>
+      <ol class="process-steps">
+        <li>Sleeper's draft API (<code>api.sleeper.app</code>) is public, needs no login, and returns open CORS headers — confirmed directly against the live endpoint, not assumed from docs.</li>
+        <li>This page's own JavaScript polls that API directly from your browser every 5 seconds while the Live Draft tab is open — no backend, no Claude session, no relay of any kind.</li>
+        <li>Every viewer's browser is polling independently, so the pick log, both rosters, the "drafted" strikethrough on the player tables, and the on-the-clock indicator all update within a few seconds of a real pick, for anyone with the link — Colby included, with zero setup on his end.</li>
+        <li>If Sleeper's API is briefly unreachable, the page keeps showing its last known state and quietly retries — no crash, no stale-looking error.</li>
+      </ol>
+      <p style="margin-bottom:0">Net effect: real near-instant updates (bounded by the 5-second poll, not "whenever someone remembers to ask Claude"), fully public, and it keeps working even if no Claude session is open during the draft.</p>
+    </div>
+  </div>
+
+  <div class="gloss" data-gloss>
+    <div class="card">
+      <h3>Terms, translated</h3>
+      <p>You know rank distributions, comp drafts, and reading a scoreboard cold &mdash; football just has different vocabulary for the same ideas. Real definition first, then how it maps to a lobby you already understand.</p>
+    </div>
+    <div class="card term-list">
+      <div class="term"><h4>Snake draft &amp; pick notation</h4><p class="def">Pick order flips every round (1&rarr;10, then 10&rarr;1, then back). "1.04" reads Round 1, 4th overall. Because round 2 reverses, a fixed slot shows a different "pick-in-round" number in even rounds — same seat, different spot in that round's order.</p><p class="analogy"><b>Think of it like:</b> a Bo3 veto that alternates ban/pick side — fair across the whole sequence, not just round one.</p></div>
+      <div class="term"><h4>Tier vs. rank vs. ADP &mdash; three different things</h4><p class="def"><b>Tier</b>: a real talent cliff grouping. <b>Rank</b>: this board's projected-production order (NOT draft order — see the sourcing note above). <b>ADP</b> (average draft position): where players are actually, empirically taken in real drafts. Use tier for value, ADP for timing.</p><p class="analogy"><b>Think of it like:</b> tier is a rank bracket (Immortal vs. Radiant), a raw points-rank is a stat leaderboard, and ADP is what pick people actually go in a real lobby — three different questions that only sometimes agree.</p></div>
+      <div class="term"><h4>Dynasty position rank (in the expand panel)</h4><p class="def">Where a player ranks against others at his position on a superflex dynasty value board — a separate ranking from redraft rank or ADP. "RB3" means 3rd-most-valuable dynasty RB in the format, regardless of this year's draft order.</p><p class="analogy"><b>Think of it like:</b> a prospect's ceiling rating vs. his current-season stat line.</p></div>
+      <div class="term"><h4>Bye week</h4><p class="def">Every NFL team gets one week off. A player on bye scores zero and can't be started that week.</p><p class="analogy"><b>Think of it like:</b> an operator pulled from the pool for a stretch — draft bench depth to cover it.</p></div>
+      <div class="term"><h4>PPR (points per reception)</h4><p class="def">A point for every catch, on top of yards and touchdowns — boosts pass-catchers over pure yardage guys.</p><p class="analogy"><b>Think of it like:</b> custom lobby rules that score objective time, not just kills.</p></div>
+      <div class="term"><h4>Superflex / 2QB</h4><p class="def">This league starts two QBs, not one — QBs get drafted much earlier and hold value much longer than a normal league.</p><p class="analogy"><b>Think of it like:</b> QB is your IGL. Most formats field one; this league fields two, so good ones go way ahead of the field.</p></div>
+      <div class="term"><h4>Dynasty vs. redraft</h4><p class="def">Redraft wipes the roster every year. Dynasty keeps it — value has to include a player's whole future arc.</p><p class="analogy"><b>Think of it like:</b> redraft is one tournament; dynasty is running an org across multiple splits.</p></div>
+      <div class="term"><h4>The tags on this board</h4><p class="def">Full reasoning under "Read this first" and inside every player's expand panel.</p><p class="analogy"><b>fade</b> &mdash; today's stats are fine, the trend line says decline. <b>prioritize</b> &mdash; on the come-up before public rankings catch up. <b>age-watch</b> &mdash; still correct, elite enough the market hasn't discounted him, but a name that could crater fast. <b>adp-gap</b> &mdash; the board's rank and real ADP disagree by a lot — a data caveat, not a value judgment.</p></div>
+    </div>
+  </div>
+
+  <div class="legend" data-legend>
+    <div class="card">
+      <h3>Why some picks look "wrong" for this year</h3>
+      <p>The tiebreaker, when this year's board and dynasty value disagree, leans toward 2027+ &mdash; especially on Micah's team, since Colby manages it solo starting right after the draft. These tags carry that reasoning onto the board itself.</p>
+      <ul>
+        <li><span class="chip fade">fade</span> &mdash; ranks well this year but dynasty value is meaningfully worse. Don't reach.</li>
+        <li><span class="chip pri">prioritize</span> &mdash; modest this-year rank but a dynasty riser. Worth taking a little early.</li>
+        <li><span class="chip watch">age-watch</span> &mdash; still the correct pick, elite enough the market hasn't discounted him. Watch his value, don't fade him.</li>
+        <li><span class="chip gap">adp-gap</span> &mdash; this board's rank and real market ADP disagree by 8+ picks. Trust ADP for timing, not the rank number.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>How to read the board now</h3>
+      <p><b style="color:var(--ink)">Rank/tier group players by value. ADP tells you when they'll actually go.</b> Every row shows both — expand a player to see the gap explicitly when it's large. The Draft Plan tab is now built entirely from ADP-based availability windows, not the raw points rank, for exactly the reason a sharp reader caught: the old plan assumed players would fall to picks the real market never lets them reach.</p>
+      <p style="margin-bottom:0">Use the toggle at the top to flip between Micah's and Colby's plan, pick sequence, and roster — same shared board, two different seats in the same draft.</p>
+    </div>
+  </div>
+
+  <div class="tabpane" data-pos="PLAN">
+    <div class="pos-head"><h2 style="color:var(--accent)">Round-by-round draft plan</h2><span class="note" id="plan-note">Micah &middot; picks 1.04&ndash;10.07 &middot; built from real ADP, not raw board rank</span></div>
+    <div class="card">
+      <p style="margin-bottom:8px">Availability windows below use real market ADP (RB/WR/TE) plus the labeled superflex QB-timing curve (see Sources tab) &mdash; not the board's points-rank, which doesn't track real draft order. Treat these as probability-weighted, not guaranteed: ADP has real variance, and one positional run can shift everything downstream.</p>
+      <p style="margin-bottom:0;font-size:12.5px;color:var(--ink-faint)" id="plan-target-mix">Target mix through pick 10: 2 QBs, 3&ndash;4 RBs, 3&ndash;4 WRs, 1&ndash;2 TEs.</p>
+    </div>
+    <div style="overflow-x:auto"><table class="plan-table"><thead><tr><th>Pick</th><th>Overall</th><th>Realistic targets (by ADP)</th><th>Why</th></tr></thead><tbody id="plan-body"></tbody></table></div>
+  </div>
+
+  <section class="tabpane" data-pos="QB" data-pos-section="QB">
+    <div class="pos-head"><h2>Quarterback</h2><span class="note">Superflex &mdash; don't wait on this like a 1&#8209;QB draft. ADP shown is SF-adjusted (heuristic).</span></div>
+    <div id="QB-body"></div>
+  </section>
+  <section class="tabpane" data-pos="RB" data-pos-section="RB">
+    <div class="pos-head"><h2>Running Back</h2><span class="note">Heaviest fade cluster on the board &mdash; several aging RB1s here</span></div>
+    <div id="RB-body"></div>
+  </section>
+  <section class="tabpane" data-pos="WR" data-pos-section="WR">
+    <div class="pos-head"><h2>Wide Receiver</h2><span class="note">Deepest position, but real ADP moves much faster than the points-rank board suggests</span></div>
+    <div id="WR-body"></div>
+  </section>
+  <section class="tabpane" data-pos="TE" data-pos-section="TE">
+    <div class="pos-head"><h2>Tight End</h2><span class="note">Cliff after the top tiers &mdash; the well runs dry fast</span></div>
+    <div id="TE-body"></div>
+  </section>
+</main>
+
+<footer>
+  Board basis: Stone Cold Fantasy 2026 superflex board (PPR), pulled 2026&#8209;09&#8209;02, used for tier grouping only. Real ADP: FantasyFootballCalculator, 10-team PPR, pulled 2026&#8209;09&#8209;04 (QB order is a labeled superflex heuristic on top of it &mdash; see Sources tab). Dynasty position ranks: StatHead <code>get_dynasty_values</code> (superflex), 2026&#8209;09&#8209;03. Draft slots confirmed from the Sleeper draft object directly. Full reasoning, 2027+ planning, and methodology notes in draft-research.md. Republish this page if the board, tags, or either drafter's plan changes.
+</footer>
+
+<script id="board-data" type="application/json">[{"rank":1,"tier":1,"name":"Josh Allen","position":"QB","team":"BUF","bye":7,"dynAge":30.3,"dynPosRank":1,"ffcAdp":33.5,"sfAdjAdp":4,"qbSfRank":1},{"rank":2,"tier":1,"name":"Jahmyr Gibbs","position":"RB","team":"DET","bye":6,"dynAge":24.4,"dynPosRank":1,"ffcAdp":1.5,"sfAdjAdp":1.5},{"rank":3,"tier":2,"name":"Lamar Jackson","position":"QB","team":"BAL","bye":13,"dynAge":29.6,"dynPosRank":3,"ffcAdp":57,"sfAdjAdp":16,"qbSfRank":4},{"rank":4,"tier":2,"name":"Drake Maye","position":"QB","team":"NE","bye":11,"dynAge":24,"dynPosRank":2,"ffcAdp":52,"sfAdjAdp":8,"qbSfRank":2},{"rank":5,"tier":3,"name":"Joe Burrow","position":"QB","team":"CIN","bye":6,"dynAge":29.7,"dynPosRank":6,"ffcAdp":55.9,"sfAdjAdp":12,"qbSfRank":3},{"rank":6,"tier":3,"name":"Jalen Hurts","position":"QB","team":"PHI","bye":10,"dynAge":28.1,"dynPosRank":8,"ffcAdp":78.2,"sfAdjAdp":35,"qbSfRank":8},{"rank":7,"tier":2,"name":"Bijan Robinson","position":"RB","team":"ATL","bye":11,"dynAge":24.6,"dynPosRank":2,"ffcAdp":2.4,"sfAdjAdp":2.4},{"rank":8,"tier":2,"name":"Jonathan Taylor","position":"RB","team":"IND","bye":13,"dynAge":27.6,"dynPosRank":8,"ffcAdp":7.4,"sfAdjAdp":7.4},{"rank":9,"tier":1,"name":"Ja'Marr Chase","position":"WR","team":"CIN","bye":6,"dynAge":26.5,"dynPosRank":1,"ffcAdp":3.9,"sfAdjAdp":3.9},{"rank":10,"tier":2,"name":"Christian McCaffrey","position":"RB","team":"SF","bye":8,"dynAge":30.2,"dynPosRank":11,"ffcAdp":6.4,"sfAdjAdp":6.4},{"rank":11,"tier":4,"name":"Jayden Daniels","position":"QB","team":"WAS","bye":7,"dynAge":25.7,"dynPosRank":5,"ffcAdp":74.1,"sfAdjAdp":25,"qbSfRank":6},{"rank":12,"tier":4,"name":"Caleb Williams","position":"QB","team":"CHI","bye":10,"dynAge":24.8,"dynPosRank":4,"ffcAdp":88.1,"sfAdjAdp":45,"qbSfRank":10},{"rank":13,"tier":4,"name":"Justin Herbert","position":"QB","team":"LAC","bye":7,"dynAge":28.5,"dynPosRank":7,"ffcAdp":104.8,"sfAdjAdp":69,"qbSfRank":14},{"rank":14,"tier":3,"name":"James Cook","position":"RB","team":"BUF","bye":7,"dynAge":26.9,"dynPosRank":7,"ffcAdp":11.5,"sfAdjAdp":11.5},{"rank":15,"tier":5,"name":"Trevor Lawrence","position":"QB","team":"JAX","bye":7,"dynAge":26.9,"dynPosRank":11,"ffcAdp":92.4,"sfAdjAdp":51,"qbSfRank":11},{"rank":16,"tier":2,"name":"Puka Nacua","position":"WR","team":"LAR","bye":11,"dynAge":25.3,"dynPosRank":3,"ffcAdp":2.8,"sfAdjAdp":2.8},{"rank":17,"tier":5,"name":"Dak Prescott","position":"QB","team":"DAL","bye":14,"dynAge":33.1,"dynPosRank":14,"ffcAdp":65.5,"sfAdjAdp":20,"qbSfRank":5},{"rank":18,"tier":6,"name":"Brock Purdy","position":"QB","team":"SF","bye":8,"dynAge":26.7,"dynPosRank":13,"ffcAdp":86.3,"sfAdjAdp":40,"qbSfRank":9},{"rank":19,"tier":4,"name":"Chase Brown","position":"RB","team":"CIN","bye":6,"dynAge":26.4,"dynPosRank":9,"ffcAdp":13,"sfAdjAdp":13},{"rank":20,"tier":6,"name":"Bo Nix","position":"QB","team":"DEN","bye":10,"dynAge":26.5,"dynPosRank":12,"ffcAdp":112.4,"sfAdjAdp":75,"qbSfRank":15},{"rank":21,"tier":4,"name":"De'Von Achane","position":"RB","team":"MIA","bye":6,"dynAge":24.9,"dynPosRank":6,"ffcAdp":9.9,"sfAdjAdp":9.9},{"rank":22,"tier":4,"name":"Saquon Barkley","position":"RB","team":"PHI","bye":10,"dynAge":29.6,"dynPosRank":13,"ffcAdp":18.4,"sfAdjAdp":18.4},{"rank":23,"tier":3,"name":"Jaxon Smith-Njigba","position":"WR","team":"SEA","bye":11,"dynAge":24.6,"dynPosRank":2,"ffcAdp":5.5,"sfAdjAdp":5.5},{"rank":24,"tier":7,"name":"Jaxson Dart","position":"QB","team":"NYG","bye":8,"dynAge":23.3,"dynPosRank":9,"ffcAdp":119.3,"sfAdjAdp":81,"qbSfRank":16},{"rank":25,"tier":5,"name":"Omarion Hampton","position":"RB","team":"LAC","bye":7,"dynAge":23.5,"dynPosRank":5,"ffcAdp":22.2,"sfAdjAdp":22.2},{"rank":26,"tier":7,"name":"Patrick Mahomes","position":"QB","team":"KC","bye":5,"dynAge":31,"dynPosRank":10,"ffcAdp":104.2,"sfAdjAdp":63,"qbSfRank":13},{"rank":27,"tier":5,"name":"Derrick Henry","position":"RB","team":"BAL","bye":13,"dynAge":32.7,"dynPosRank":23,"ffcAdp":16,"sfAdjAdp":16},{"rank":28,"tier":5,"name":"Kenneth Walker III","position":"RB","team":"KC","bye":5,"dynAge":25.9,"dynPosRank":10,"ffcAdp":21.1,"sfAdjAdp":21.1},{"rank":29,"tier":4,"name":"Amon-Ra St. Brown","position":"WR","team":"DET","bye":6,"dynAge":26.9,"dynPosRank":4,"ffcAdp":6.6,"sfAdjAdp":6.6},{"rank":30,"tier":7,"name":"Jared Goff","position":"QB","team":"DET","bye":6,"dynAge":31.9,"dynPosRank":20,"ffcAdp":102.4,"sfAdjAdp":57,"qbSfRank":12},{"rank":31,"tier":4,"name":"CeeDee Lamb","position":"WR","team":"DAL","bye":14,"dynAge":27.4,"dynPosRank":7,"ffcAdp":10.3,"sfAdjAdp":10.3},{"rank":32,"tier":7,"name":"Matthew Stafford","position":"QB","team":"LAR","bye":11,"dynAge":38.6,"dynPosRank":22,"ffcAdp":75.1,"sfAdjAdp":30,"qbSfRank":7},{"rank":33,"tier":6,"name":"Ashton Jeanty","position":"RB","team":"LV","bye":13,"dynAge":22.8,"dynPosRank":4,"ffcAdp":20.5,"sfAdjAdp":20.5},{"rank":34,"tier":6,"name":"Kyren Williams","position":"RB","team":"LAR","bye":11,"dynAge":26,"dynPosRank":16,"ffcAdp":31.4,"sfAdjAdp":31.4},{"rank":35,"tier":6,"name":"Breece Hall","position":"RB","team":"NYJ","bye":13,"dynAge":25.3,"dynPosRank":12,"ffcAdp":32.3,"sfAdjAdp":32.3},{"rank":36,"tier":1,"name":"Trey McBride","position":"TE","team":"ARI","bye":14,"dynAge":26.8,"dynPosRank":2,"ffcAdp":29.1,"sfAdjAdp":29.1},{"rank":37,"tier":5,"name":"Justin Jefferson","position":"WR","team":"MIN","bye":6,"dynAge":27.2,"dynPosRank":5,"ffcAdp":11.7,"sfAdjAdp":11.7},{"rank":38,"tier":8,"name":"Kyler Murray","position":"QB","team":"MIN","bye":6,"dynAge":29.1,"dynPosRank":24,"ffcAdp":133.2,"sfAdjAdp":97,"qbSfRank":18},{"rank":39,"tier":6,"name":"Javonte Williams","position":"RB","team":"DAL","bye":14,"dynAge":26.4,"dynPosRank":17,"ffcAdp":35.4,"sfAdjAdp":35.4},{"rank":40,"tier":6,"name":"Jeremiyah Love","position":"RB","team":"ARI","bye":14,"dynAge":21.3,"dynPosRank":3,"ffcAdp":27.3,"sfAdjAdp":27.3},{"rank":41,"tier":5,"name":"Drake London","position":"WR","team":"ATL","bye":11,"dynAge":25.1,"dynPosRank":8,"ffcAdp":13.4,"sfAdjAdp":13.4},{"rank":42,"tier":8,"name":"Jordan Love","position":"QB","team":"GB","bye":11,"dynAge":27.8,"dynPosRank":16},{"rank":43,"tier":7,"name":"Travis Etienne","position":"RB","team":"NO","bye":8,"dynAge":27.6,"dynPosRank":22,"ffcAdp":37.1,"sfAdjAdp":37.1},{"rank":44,"tier":7,"name":"D'Andre Swift","position":"RB","team":"CHI","bye":10,"dynAge":27.6,"dynPosRank":24,"ffcAdp":44.2,"sfAdjAdp":44.2},{"rank":45,"tier":5,"name":"A.J. Brown","position":"WR","team":"NE","bye":11,"dynAge":29.2,"dynPosRank":19,"ffcAdp":17,"sfAdjAdp":17},{"rank":46,"tier":8,"name":"Baker Mayfield","position":"QB","team":"TB","bye":10,"dynAge":31.4,"dynPosRank":19,"ffcAdp":129.6,"sfAdjAdp":89,"qbSfRank":17},{"rank":47,"tier":6,"name":"Nico Collins","position":"WR","team":"HOU","bye":8,"dynAge":27.5,"dynPosRank":13,"ffcAdp":21.3,"sfAdjAdp":21.3},{"rank":48,"tier":7,"name":"Bucky Irving","position":"RB","team":"TB","bye":10,"dynAge":24,"dynPosRank":19,"ffcAdp":46.1,"sfAdjAdp":46.1},{"rank":49,"tier":6,"name":"George Pickens","position":"WR","team":"DAL","bye":14,"dynAge":25.5,"dynPosRank":9,"ffcAdp":19.8,"sfAdjAdp":19.8},{"rank":50,"tier":6,"name":"Chris Olave","position":"WR","team":"NO","bye":8,"dynAge":26.2,"dynPosRank":12,"ffcAdp":19.2,"sfAdjAdp":19.2},{"rank":51,"tier":6,"name":"Malik Nabers","position":"WR","team":"NYG","bye":8,"dynAge":23.1,"dynPosRank":6,"ffcAdp":27,"sfAdjAdp":27},{"rank":52,"tier":8,"name":"David Montgomery","position":"RB","team":"HOU","bye":8,"dynAge":29.2,"dynPosRank":26,"ffcAdp":55.4,"sfAdjAdp":55.4},{"rank":53,"tier":8,"name":"Cam Skattebo","position":"RB","team":"NYG","bye":8,"dynAge":24.6,"dynPosRank":20,"ffcAdp":39.9,"sfAdjAdp":39.9},{"rank":54,"tier":6,"name":"DeVonta Smith","position":"WR","team":"PHI","bye":10,"dynAge":27.8,"dynPosRank":16,"ffcAdp":29.5,"sfAdjAdp":29.5},{"rank":55,"tier":6,"name":"Rashee Rice","position":"WR","team":"KC","bye":5,"dynAge":26.4,"dynPosRank":24,"ffcAdp":16.6,"sfAdjAdp":16.6},{"rank":56,"tier":8,"name":"Quinshon Judkins","position":"RB","team":"CLE","bye":11,"dynAge":22.8,"dynPosRank":14,"ffcAdp":50.3,"sfAdjAdp":50.3},{"rank":57,"tier":2,"name":"Brock Bowers","position":"TE","team":"LV","bye":13,"dynAge":23.7,"dynPosRank":1,"ffcAdp":34.6,"sfAdjAdp":34.6},{"rank":58,"tier":8,"name":"Bhayshul Tuten","position":"RB","team":"JAX","bye":7,"dynAge":23.6,"dynPosRank":21,"ffcAdp":53.8,"sfAdjAdp":53.8},{"rank":59,"tier":6,"name":"Zay Flowers","position":"WR","team":"BAL","bye":13,"dynAge":26,"dynPosRank":20,"ffcAdp":25.6,"sfAdjAdp":25.6},{"rank":60,"tier":8,"name":"Jadarian Price","position":"RB","team":"SEA","bye":11,"dynAge":22.9,"dynPosRank":15,"ffcAdp":72.8,"sfAdjAdp":72.8},{"rank":61,"tier":9,"name":"Tyler Shough","position":"QB","team":"NO","bye":8,"dynAge":26.9,"dynPosRank":17,"ffcAdp":137,"sfAdjAdp":105,"qbSfRank":19},{"rank":62,"tier":2,"name":"Colston Loveland","position":"TE","team":"CHI","bye":10,"dynAge":22.4,"dynPosRank":3,"ffcAdp":54.9,"sfAdjAdp":54.9},{"rank":63,"tier":2,"name":"Tyler Warren","position":"TE","team":"IND","bye":13,"dynAge":24.3,"dynPosRank":4,"ffcAdp":65.7,"sfAdjAdp":65.7},{"rank":64,"tier":9,"name":"Malik Willis","position":"QB","team":"MIA","bye":6,"dynAge":27.3,"dynPosRank":25},{"rank":65,"tier":7,"name":"Tee Higgins","position":"WR","team":"CIN","bye":6,"dynAge":27.6,"dynPosRank":22,"ffcAdp":36.2,"sfAdjAdp":36.2},{"rank":66,"tier":7,"name":"Jaylen Waddle","position":"WR","team":"DEN","bye":10,"dynAge":27.8,"dynPosRank":23,"ffcAdp":44.6,"sfAdjAdp":44.6},{"rank":67,"tier":7,"name":"Ladd McConkey","position":"WR","team":"LAC","bye":7,"dynAge":24.8,"dynPosRank":14,"ffcAdp":38.4,"sfAdjAdp":38.4},{"rank":68,"tier":7,"name":"Garrett Wilson","position":"WR","team":"NYJ","bye":13,"dynAge":26.1,"dynPosRank":15,"ffcAdp":27.2,"sfAdjAdp":27.2},{"rank":69,"tier":7,"name":"Emeka Egbuka","position":"WR","team":"TB","bye":10,"dynAge":23.9,"dynPosRank":11,"ffcAdp":35.7,"sfAdjAdp":35.7},{"rank":70,"tier":7,"name":"Tetairoa McMillan","position":"WR","team":"CAR","bye":5,"dynAge":23.4,"dynPosRank":10,"ffcAdp":31.6,"sfAdjAdp":31.6},{"rank":71,"tier":9,"name":"TreVeyon Henderson","position":"RB","team":"NE","bye":11,"dynAge":23.9,"dynPosRank":18,"ffcAdp":64.7,"sfAdjAdp":64.7},{"rank":72,"tier":7,"name":"Terry McLaurin","position":"WR","team":"WAS","bye":7,"dynAge":31,"dynPosRank":43,"ffcAdp":48.6,"sfAdjAdp":48.6},{"rank":73,"tier":7,"name":"Davante Adams","position":"WR","team":"LAR","bye":11,"dynAge":33.7,"dynPosRank":41,"ffcAdp":42,"sfAdjAdp":42},{"rank":74,"tier":3,"name":"Harold Fannin","position":"TE","team":"CLE","bye":11,"dynAge":22.1,"dynPosRank":6,"ffcAdp":74.9,"sfAdjAdp":74.9},{"rank":75,"tier":7,"name":"Luther Burden","position":"WR","team":"CHI","bye":10,"dynAge":22.7,"dynPosRank":17,"ffcAdp":54.1,"sfAdjAdp":54.1},{"rank":76,"tier":3,"name":"Tucker Kraft","position":"TE","team":"GB","bye":11,"dynAge":25.8,"dynPosRank":5,"ffcAdp":102.9,"sfAdjAdp":102.9},{"rank":77,"tier":7,"name":"Jameson Williams","position":"WR","team":"DET","bye":6,"dynAge":25.4,"dynPosRank":25,"ffcAdp":45.4,"sfAdjAdp":45.4},{"rank":78,"tier":7,"name":"D.J. Moore","position":"WR","team":"BUF","bye":7,"dynAge":29.4,"dynPosRank":34,"ffcAdp":47.6,"sfAdjAdp":47.6},{"rank":79,"tier":9,"name":"Rhamondre Stevenson","position":"RB","team":"NE","bye":11,"dynAge":28.5,"dynPosRank":31,"ffcAdp":61.6,"sfAdjAdp":61.6},{"rank":80,"tier":7,"name":"Christian Watson","position":"WR","team":"GB","bye":11,"dynAge":27.3,"dynPosRank":32,"ffcAdp":57.9,"sfAdjAdp":57.9},{"rank":81,"tier":9,"name":"Jaylen Warren","position":"RB","team":"PIT","bye":9,"dynAge":27.8,"dynPosRank":28,"ffcAdp":62.3,"sfAdjAdp":62.3},{"rank":82,"tier":9,"name":"Tony Pollard","position":"RB","team":"TEN","bye":9,"dynAge":29.3,"dynPosRank":46,"ffcAdp":68.4,"sfAdjAdp":68.4},{"rank":83,"tier":8,"name":"Rome Odunze","position":"WR","team":"CHI","bye":10,"dynAge":24.2,"dynPosRank":21,"ffcAdp":54.4,"sfAdjAdp":54.4},{"rank":84,"tier":8,"name":"Mike Evans","position":"WR","team":"SF","bye":8,"dynAge":33,"dynPosRank":54,"ffcAdp":55.4,"sfAdjAdp":55.4},{"rank":85,"tier":10,"name":"Sam Darnold","position":"QB","team":"SEA","bye":11,"dynAge":29.2,"dynPosRank":23},{"rank":86,"tier":4,"name":"Sam LaPorta","position":"TE","team":"DET","bye":6,"dynAge":25.6,"dynPosRank":7,"ffcAdp":111.3,"sfAdjAdp":111.3},{"rank":87,"tier":8,"name":"Parker Washington","position":"WR","team":"JAX","bye":7,"dynAge":24.4,"dynPosRank":27,"ffcAdp":63.2,"sfAdjAdp":63.2},{"rank":88,"tier":4,"name":"Kyle Pitts","position":"TE","team":"ATL","bye":11,"dynAge":25.9,"dynPosRank":8,"ffcAdp":81.1,"sfAdjAdp":81.1},{"rank":89,"tier":10,"name":"Rico Dowdle","position":"RB","team":"PIT","bye":9,"dynAge":28.2,"dynPosRank":36,"ffcAdp":73.6,"sfAdjAdp":73.6},{"rank":90,"tier":8,"name":"Marvin Harrison Jr.","position":"WR","team":"ARI","bye":14,"dynAge":24.1,"dynPosRank":28,"ffcAdp":63.8,"sfAdjAdp":63.8},{"rank":91,"tier":4,"name":"Travis Kelce","position":"TE","team":"KC","bye":5,"dynAge":36.9,"dynPosRank":22,"ffcAdp":106.7,"sfAdjAdp":106.7},{"rank":92,"tier":10,"name":"Jonathon Brooks","position":"RB","team":"CAR","bye":5,"dynAge":23.1,"dynPosRank":25,"ffcAdp":92.9,"sfAdjAdp":92.9},{"rank":93,"tier":8,"name":"Carnell Tate","position":"WR","team":"TEN","bye":9,"dynAge":21.6,"dynPosRank":18,"ffcAdp":79.8,"sfAdjAdp":79.8},{"rank":94,"tier":8,"name":"DK Metcalf","position":"WR","team":"PIT","bye":9,"dynAge":28.7,"dynPosRank":47,"ffcAdp":66.8,"sfAdjAdp":66.8},{"rank":95,"tier":4,"name":"George Kittle","position":"TE","team":"SF","bye":8,"dynAge":32.9,"dynPosRank":11,"ffcAdp":93.6,"sfAdjAdp":93.6},{"rank":96,"tier":8,"name":"Chris Godwin","position":"WR","team":"TB","bye":10,"dynAge":30.5,"dynPosRank":56,"ffcAdp":78.9,"sfAdjAdp":78.9},{"rank":97,"tier":10,"name":"C.J. Stroud","position":"QB","team":"HOU","bye":8,"dynAge":24.9,"dynPosRank":21},{"rank":98,"tier":9,"name":"Brian Thomas Jr.","position":"WR","team":"JAX","bye":7,"dynAge":23.9,"dynPosRank":31,"ffcAdp":72.8,"sfAdjAdp":72.8},{"rank":99,"tier":5,"name":"Dalton Kincaid","position":"TE","team":"BUF","bye":7,"dynAge":26.9,"dynPosRank":12,"sfAdjAdp":null},{"rank":100,"tier":10,"name":"Daniel Jones","position":"QB","team":"IND","bye":13,"dynAge":29.3,"dynPosRank":26},{"rank":101,"tier":9,"name":"Michael Pittman","position":"WR","team":"PIT","bye":9,"dynAge":28.9,"dynPosRank":49,"ffcAdp":77.1,"sfAdjAdp":77.1},{"rank":102,"tier":11,"name":"RJ Harvey","position":"RB","team":"DEN","bye":10,"dynAge":25.6,"dynPosRank":33,"ffcAdp":94.6,"sfAdjAdp":94.6},{"rank":103,"tier":9,"name":"Courtland Sutton","position":"WR","team":"DEN","bye":10,"dynAge":30.9,"dynPosRank":51,"ffcAdp":61,"sfAdjAdp":61},{"rank":104,"tier":11,"name":"Chuba Hubbard","position":"RB","team":"CAR","bye":5,"dynAge":27.2,"dynPosRank":39,"ffcAdp":82,"sfAdjAdp":82},{"rank":105,"tier":11,"name":"Kenneth Gainwell","position":"RB","team":"TB","bye":10,"dynAge":27.5,"dynPosRank":40,"ffcAdp":90.6,"sfAdjAdp":90.6},{"rank":106,"tier":5,"name":"Isaiah Likely","position":"TE","team":"NYG","bye":8,"dynAge":26.4,"dynPosRank":10,"ffcAdp":136.2,"sfAdjAdp":136.2},{"rank":107,"tier":11,"name":"J.K. Dobbins","position":"RB","team":"DEN","bye":10,"dynAge":27.7,"dynPosRank":41,"ffcAdp":87.1,"sfAdjAdp":87.1},{"rank":108,"tier":11,"name":"MarShawn Lloyd","position":"RB","team":"GB","bye":11,"dynAge":25.7,"dynPosRank":30,"ffcAdp":125.1,"sfAdjAdp":125.1},{"rank":109,"tier":5,"name":"Jake Ferguson","position":"TE","team":"DAL","bye":14,"dynAge":27.6,"dynPosRank":14,"ffcAdp":133.3,"sfAdjAdp":133.3},{"rank":110,"tier":9,"name":"Quentin Johnston","position":"WR","team":"LAC","bye":7,"dynAge":25,"dynPosRank":40,"ffcAdp":95.2,"sfAdjAdp":95.2},{"rank":111,"tier":11,"name":"Blake Corum","position":"RB","team":"LAR","bye":11,"dynAge":25.8,"dynPosRank":27,"ffcAdp":122.3,"sfAdjAdp":122.3},{"rank":112,"tier":11,"name":"Cam Ward","position":"QB","team":"TEN","bye":9,"dynAge":24.3,"dynPosRank":18},{"rank":113,"tier":9,"name":"Michael Wilson","position":"WR","team":"ARI","bye":14,"dynAge":26.5,"dynPosRank":36,"ffcAdp":74.1,"sfAdjAdp":74.1},{"rank":114,"tier":9,"name":"Wan'Dale Robinson","position":"WR","team":"TEN","bye":9,"dynAge":25.7,"dynPosRank":44,"ffcAdp":86.5,"sfAdjAdp":86.5},{"rank":115,"tier":5,"name":"Dallas Goedert","position":"TE","team":"PHI","bye":10,"dynAge":31.7,"dynPosRank":20,"ffcAdp":112.6,"sfAdjAdp":112.6},{"rank":116,"tier":10,"name":"Josh Downs","position":"WR","team":"IND","bye":13,"dynAge":25.1,"dynPosRank":42,"ffcAdp":90.6,"sfAdjAdp":90.6},{"rank":117,"tier":10,"name":"Alec Pierce","position":"WR","team":"IND","bye":13,"dynAge":26.3,"dynPosRank":38,"ffcAdp":69.8,"sfAdjAdp":69.8},{"rank":118,"tier":11,"name":"Bryce Young","position":"QB","team":"CAR","bye":5,"dynAge":25.1,"dynPosRank":27},{"rank":119,"tier":12,"name":"Jordan Mason","position":"RB","team":"MIN","bye":6,"dynAge":27.3,"dynPosRank":38,"ffcAdp":113.7,"sfAdjAdp":113.7},{"rank":120,"tier":12,"name":"Jacory Croskey-Merritt","position":"RB","team":"WAS","bye":7,"dynAge":25.4,"dynPosRank":37,"ffcAdp":114.1,"sfAdjAdp":114.1},{"rank":121,"tier":10,"name":"Stefon Diggs","position":"WR","team":"WAS","bye":7,"dynAge":32.8,"dynPosRank":72,"ffcAdp":93,"sfAdjAdp":93},{"rank":122,"tier":6,"name":"Mark Andrews","position":"TE","team":"BAL","bye":13,"dynAge":31,"dynPosRank":21,"ffcAdp":131.4,"sfAdjAdp":131.4},{"rank":123,"tier":6,"name":"Juwan Johnson","position":"TE","team":"NO","bye":8,"dynAge":30,"dynPosRank":25,"sfAdjAdp":null},{"rank":124,"tier":10,"name":"Jayden Reed","position":"WR","team":"GB","bye":11,"dynAge":26.4,"dynPosRank":45,"ffcAdp":92.6,"sfAdjAdp":92.6},{"rank":125,"tier":12,"name":"Rachaad White","position":"RB","team":"WAS","bye":7,"dynAge":27.6,"dynPosRank":49,"ffcAdp":117.1,"sfAdjAdp":117.1},{"rank":126,"tier":11,"name":"Jacoby Brissett","position":"QB","team":"ARI","bye":14,"dynAge":33.7,"dynPosRank":33},{"rank":127,"tier":10,"name":"Jakobi Meyers","position":"WR","team":"JAX","bye":7,"dynAge":29.8,"dynPosRank":64,"ffcAdp":86.9,"sfAdjAdp":86.9},{"rank":128,"tier":10,"name":"Jordan Addison","position":"WR","team":"MIN","bye":6,"dynAge":24.6,"dynPosRank":35,"ffcAdp":96.8,"sfAdjAdp":96.8},{"rank":129,"tier":6,"name":"Brenton Strange","position":"TE","team":"JAX","bye":7,"dynAge":25.7,"dynPosRank":17,"sfAdjAdp":null},{"rank":130,"tier":10,"name":"Makai Lemon","position":"WR","team":"PHI","bye":10,"dynAge":22.2,"dynPosRank":30,"ffcAdp":129.4,"sfAdjAdp":129.4},{"rank":131,"tier":6,"name":"Chigoziem Okonkwo","position":"TE","team":"WAS","bye":7,"dynAge":27,"dynPosRank":19,"sfAdjAdp":null},{"rank":132,"tier":13,"name":"Kyle Monangai","position":"RB","team":"CHI","bye":10,"dynAge":24.2,"dynPosRank":29,"ffcAdp":109.8,"sfAdjAdp":109.8},{"rank":133,"tier":6,"name":"Hunter Henry","position":"TE","team":"NE","bye":11,"dynAge":31.7,"dynPosRank":26,"sfAdjAdp":null},{"rank":134,"tier":6,"name":"Dalton Schultz","position":"TE","team":"HOU","bye":8,"dynAge":30.2,"dynPosRank":31,"sfAdjAdp":null},{"rank":135,"tier":6,"name":"Terrance Ferguson","position":"TE","team":"LAR","bye":11,"dynAge":23.5,"dynPosRank":13,"sfAdjAdp":null},{"rank":136,"tier":11,"name":"KC Concepcion","position":"WR","team":"CLE","bye":11,"dynAge":21.9,"dynPosRank":29,"ffcAdp":118.6,"sfAdjAdp":118.6},{"rank":137,"tier":11,"name":"Matthew Golden","position":"WR","team":"GB","bye":11,"dynAge":23.1,"dynPosRank":37,"ffcAdp":106.9,"sfAdjAdp":106.9},{"rank":138,"tier":13,"name":"Woody Marks","position":"RB","team":"HOU","bye":8,"dynAge":25.7,"dynPosRank":42,"sfAdjAdp":null},{"rank":139,"tier":11,"name":"Jalen Coker","position":"WR","team":"CAR","bye":5,"dynAge":24.8,"dynPosRank":46,"ffcAdp":121,"sfAdjAdp":121},{"rank":140,"tier":13,"name":"Aaron Jones","position":"RB","team":"MIN","bye":6,"dynAge":31.8,"dynPosRank":62,"ffcAdp":105.6,"sfAdjAdp":105.6},{"rank":141,"tier":11,"name":"Khalil Shakir","position":"WR","team":"BUF","bye":7,"dynAge":26.6,"dynPosRank":66,"ffcAdp":102,"sfAdjAdp":102},{"rank":142,"tier":13,"name":"Chris Rodriguez","position":"RB","team":"JAX","bye":7,"dynAge":25.9,"dynPosRank":50,"sfAdjAdp":null},{"rank":143,"tier":7,"name":"AJ Barner","position":"TE","team":"SEA","bye":11,"dynAge":24.3,"dynPosRank":18,"sfAdjAdp":null},{"rank":144,"tier":7,"name":"Oronde Gadsden","position":"TE","team":"LAC","bye":7,"dynAge":23.2,"dynPosRank":15,"sfAdjAdp":null},{"rank":145,"tier":7,"name":"T.J. Hockenson","position":"TE","team":"MIN","bye":6,"dynAge":29.2,"dynPosRank":23,"sfAdjAdp":null},{"rank":146,"tier":11,"name":"De'Zhaun Stribling","position":"WR","team":"SF","bye":8,"dynAge":23.7,"dynPosRank":33,"ffcAdp":126,"sfAdjAdp":126},{"rank":147,"tier":12,"name":"Aaron Rodgers","position":"QB","team":"PIT","bye":9,"dynAge":42.8,"dynPosRank":40},{"rank":148,"tier":11,"name":"Romeo Doubs","position":"WR","team":"NE","bye":11,"dynAge":26.4,"dynPosRank":53,"ffcAdp":108.8,"sfAdjAdp":108.8},{"rank":149,"tier":13,"name":"Tyler Allgeier","position":"RB","team":"ARI","bye":14,"dynAge":26.4,"dynPosRank":43,"sfAdjAdp":null},{"rank":150,"tier":11,"name":"Xavier Worthy","position":"WR","team":"KC","bye":5,"dynAge":23.4,"dynPosRank":55,"ffcAdp":105.6,"sfAdjAdp":105.6},{"rank":151,"tier":7,"name":"Gunnar Helm","position":"TE","team":"TEN","bye":9,"dynAge":24,"dynPosRank":24,"sfAdjAdp":null},{"rank":152,"tier":11,"name":"Rashid Shaheed","position":"WR","team":"SEA","bye":11,"dynAge":28,"dynPosRank":71,"ffcAdp":128.5,"sfAdjAdp":128.5},{"rank":153,"tier":11,"name":"Jordyn Tyson","position":"WR","team":"NO","bye":8,"dynAge":22.1,"dynPosRank":26,"sfAdjAdp":null},{"rank":154,"tier":7,"name":"Kenyon Sadiq","position":"TE","team":"NYJ","bye":13,"dynAge":21.5,"dynPosRank":9,"sfAdjAdp":null},{"rank":155,"tier":11,"name":"Deebo Samuel","position":"WR","team":"SF","bye":8,"dynAge":30.6,"dynPosRank":85,"ffcAdp":111.6,"sfAdjAdp":111.6},{"rank":156,"tier":12,"name":"Geno Smith","position":"QB","team":"NYJ","bye":13,"dynAge":35.9,"dynPosRank":38},{"rank":157,"tier":12,"name":"Tre Tucker","position":"WR","team":"LV","bye":13,"dynAge":25.5,"dynPosRank":77,"ffcAdp":131.1,"sfAdjAdp":131.1},{"rank":158,"tier":7,"name":"Pat Freiermuth","position":"TE","team":"PIT","bye":9,"dynAge":27.8,"dynPosRank":36,"sfAdjAdp":null},{"rank":159,"tier":12,"name":"Denzel Boston","position":"WR","team":"CLE","bye":11,"dynAge":22.7,"dynPosRank":39,"ffcAdp":135.7,"sfAdjAdp":135.7},{"rank":160,"tier":12,"name":"Adonai Mitchell","position":"WR","team":"NYJ","bye":13,"dynAge":23.9,"dynPosRank":73,"sfAdjAdp":null},{"rank":161,"tier":12,"name":"Kayshon Boutte","position":"WR","team":"HOU","bye":8,"dynAge":24.3,"dynPosRank":69,"sfAdjAdp":null},{"rank":162,"tier":8,"name":"Cade Otton","position":"TE","team":"TB","bye":10,"dynAge":27.4,"dynPosRank":34,"sfAdjAdp":null},{"rank":163,"tier":14,"name":"Jonah Coleman","position":"RB","team":"DEN","bye":10,"dynAge":23,"dynPosRank":32,"sfAdjAdp":null},{"rank":164,"tier":14,"name":"Keaton Mitchell","position":"RB","team":"LAC","bye":7,"sfAdjAdp":null},{"rank":165,"tier":8,"name":"David Njoku","position":"TE","team":"LAC","bye":7,"dynAge":30.2,"dynPosRank":37,"sfAdjAdp":null},{"rank":166,"tier":14,"name":"Mike Washington Jr.","position":"RB","team":"LV","bye":13,"dynAge":23.2,"dynPosRank":35,"sfAdjAdp":null},{"rank":167,"tier":12,"name":"Jalen McMillan","position":"WR","team":"TB","bye":10,"dynAge":24.7,"dynPosRank":62,"ffcAdp":138.1,"sfAdjAdp":138.1},{"rank":168,"tier":12,"name":"Jerry Jeudy","position":"WR","team":"CLE","bye":11,"dynAge":27.4,"dynPosRank":93,"ffcAdp":129.4,"sfAdjAdp":129.4},{"rank":169,"tier":14,"name":"Josh Jacobs","position":"RB","team":"GB","bye":11,"dynAge":28.6,"dynPosRank":45,"ffcAdp":55.8,"sfAdjAdp":55.8},{"rank":170,"tier":13,"name":"Fernando Mendoza","position":"QB","team":"LV","bye":13,"dynAge":22.9,"dynPosRank":15},{"rank":171,"tier":12,"name":"Jauan Jennings","position":"WR","team":"MIN","bye":6,"dynAge":29.2,"dynPosRank":96,"sfAdjAdp":null},{"rank":172,"tier":8,"name":"Greg Dulcich","position":"TE","team":"MIA","bye":6,"sfAdjAdp":null},{"rank":173,"tier":12,"name":"Omar Cooper Jr.","position":"WR","team":"NYJ","bye":13,"dynAge":22.7,"dynPosRank":48,"sfAdjAdp":null},{"rank":174,"tier":14,"name":"Tyjae Spears","position":"RB","team":"TEN","bye":9,"dynAge":25.2,"dynPosRank":54,"ffcAdp":128.5,"sfAdjAdp":128.5},{"rank":175,"tier":12,"name":"Tre Harris","position":"WR","team":"LAC","bye":7,"sfAdjAdp":null},{"rank":176,"tier":14,"name":"Zach Charbonnet","position":"RB","team":"SEA","bye":11,"dynAge":25.6,"dynPosRank":34,"ffcAdp":135.7,"sfAdjAdp":135.7},{"rank":177,"tier":13,"name":"Tua Tagovailoa","position":"QB","team":"ATL","bye":11,"dynAge":28.5,"dynPosRank":31},{"rank":178,"tier":14,"name":"Dylan Sampson","position":"RB","team":"CLE","bye":11,"sfAdjAdp":null},{"rank":179,"tier":8,"name":"Colby Parkinson","position":"TE","team":"LAR","bye":11,"sfAdjAdp":null},{"rank":180,"tier":12,"name":"Dontayvion Wicks","position":"WR","team":"PHI","bye":10,"dynAge":25.2,"dynPosRank":75,"sfAdjAdp":null},{"rank":181,"tier":14,"name":"Tank Bigsby","position":"RB","team":"PHI","bye":10,"dynAge":25,"dynPosRank":52,"sfAdjAdp":null},{"rank":182,"tier":8,"name":"Evan Engram","position":"TE","team":"DEN","bye":10,"sfAdjAdp":null},{"rank":183,"tier":8,"name":"Theo Johnson","position":"TE","team":"NYG","bye":8,"sfAdjAdp":null},{"rank":184,"tier":13,"name":"Michael Penix Jr.","position":"QB","team":"ATL","bye":11,"dynAge":26.3,"dynPosRank":29},{"rank":185,"tier":13,"name":"Pat Bryant","position":"WR","team":"DEN","bye":10,"sfAdjAdp":null},{"rank":186,"tier":13,"name":"Ryan Flournoy","position":"WR","team":"DAL","bye":14,"dynAge":26.8,"dynPosRank":94,"sfAdjAdp":null},{"rank":187,"tier":13,"name":"Jalen Nailor","position":"WR","team":"LV","bye":13,"dynAge":27.5,"dynPosRank":82,"sfAdjAdp":null},{"rank":188,"tier":13,"name":"Calvin Ridley","position":"WR","team":"TEN","bye":9,"sfAdjAdp":null},{"rank":189,"tier":8,"name":"Mason Taylor","position":"TE","team":"NYJ","bye":13,"dynAge":22.3,"dynPosRank":28,"sfAdjAdp":null},{"rank":190,"tier":13,"name":"Ja'Kobi Lane","position":"WR","team":"BAL","bye":13,"dynAge":22.1,"dynPosRank":50,"sfAdjAdp":null},{"rank":191,"tier":8,"name":"Eli Stowers","position":"TE","team":"PHI","bye":10,"dynAge":23.4,"dynPosRank":16,"sfAdjAdp":null},{"rank":192,"tier":13,"name":"Rashod Bateman","position":"WR","team":"BAL","bye":13,"sfAdjAdp":null},{"rank":193,"tier":13,"name":"Malik Washington","position":"WR","team":"MIA","bye":6,"dynAge":25.7,"dynPosRank":68,"sfAdjAdp":null},{"rank":194,"tier":13,"name":"Travis Hunter","position":"WR","team":"JAX","bye":7,"dynAge":23.3,"dynPosRank":60,"sfAdjAdp":null},{"rank":195,"tier":13,"name":"Kirk Cousins","position":"QB","team":"LV","bye":13,"dynAge":38,"dynPosRank":46},{"rank":196,"tier":13,"name":"Keenan Allen","position":"WR","team":"IND","bye":13,"dynAge":34.4,"dynPosRank":116,"ffcAdp":134.4,"sfAdjAdp":134.4},{"rank":197,"tier":13,"name":"Jaylin Noel","position":"WR","team":"HOU","bye":8,"dynAge":24,"dynPosRank":79,"sfAdjAdp":null},{"rank":198,"tier":9,"name":"Mike Gesicki","position":"TE","team":"CIN","bye":6,"sfAdjAdp":null},{"rank":199,"tier":15,"name":"Braelon Allen","position":"RB","team":"NYJ","bye":13,"dynAge":22.6,"dynPosRank":51,"sfAdjAdp":null},{"rank":200,"tier":15,"name":"Alvin Kamara","position":"RB","team":"NO","bye":8,"dynAge":31.1,"dynPosRank":73,"sfAdjAdp":null},{"rank":201,"tier":14,"name":"Ty Simpson","position":"QB","team":"LAR","bye":11,"dynAge":23.7,"dynPosRank":28}]</script>
+<script>
+(function(){
+  var players = JSON.parse(document.getElementById('board-data').textContent);
+
+  var TAGS = {
+    "Christian McCaffrey": {t:"fade", note:"Largest redraft/dynasty gap on the board (dynasty RB11 despite elite draft position). Missed camp time (health/contract unconfirmed) compounds the age concern at 30.2. Real ADP has him gone by pick ~6 either way &mdash; the fade is about NOT reaching for him at 1.04/1.07, not about him falling to you.", srcs:["Stone Cold Fantasy board","DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)","FFC ADP (9/4)"]},
+    "Josh Jacobs": {t:"fade", note:"Officially Out, personal reasons as of 9/1 &mdash; GM Brian Gutekunst only \"hopeful\" he plays at some point in 2026. StatHead's opportunity model still projects 42% of GB's carries and 14.2 PPG <i>if he plays</i>, meaning the projection hasn't priced the absence in. Treat as avoid entirely, not a soft fade, until his availability clears.", srcs:["nfl_mcp injury feed (ESPN, confidence 90, pulled 9/3)","StatHead opportunity model"]},
+    "Derrick Henry": {t:"fade", note:"At 32.7, fell out of the top-80 dynasty superflex board entirely on the 9/3 cross-check.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)"]},
+    "Matthew Stafford": {t:"fade", note:"At 38.6, also fell out of the top-80 dynasty superflex board. Oldest QB in range with the largest gap &mdash; fade completely.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)"]},
+    "Saquon Barkley": {t:"fade", note:"Dynasty RB13 despite a strong redraft rank &mdash; entering RB age-cliff territory at 29.6. Real ADP has him gone by pick ~18-19.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)","FFC ADP (9/4)"]},
+    "Dak Prescott": {t:"fade", note:"Dynasty QB14 &mdash; oldest starting-caliber QB in range at 33.1.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)"]},
+    "Jonathan Taylor": {t:"fade", note:"Dynasty RB8 &mdash; still a real dynasty asset, the fade is about the gap (27.6, entering the decline window) not a total avoid. Real ADP is very early (~pick 7) &mdash; this is a live decision at 1.04/1.07, not something you can wait out.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)","FFC ADP (9/4)"]},
+    "Jared Goff": {t:"fade", note:"Dynasty QB20 &mdash; age flag at 31.9, moderate but real dynasty gap.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)"]},
+    "Kenneth Walker III": {t:"fade", note:"Shorter RB shelf life at 25.9; mild but real redraft/dynasty gap.", srcs:["DynastyProcess values-players.csv (8/28)"]},
+    "Jeremiyah Love": {t:"pri", note:"Dynasty <b>RB3</b> in superflex (behind only Gibbs and Bijan) at age 21.3. Real ADP (~27) is well after his dynasty value would suggest &mdash; buy the dip right in that window.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3) &mdash; confirmed RB3","FFC ADP (9/4)"]},
+    "Malik Nabers": {t:"pri", note:"Dynasty WR6 at age 23.1. Real ADP ~27 &mdash; target aggressively in that range.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3) &mdash; confirmed WR6","FFC ADP (9/4)"]},
+    "Ashton Jeanty": {t:"pri", note:"Dynasty RB4 at age 22.8. Real ADP ~20-21 &mdash; young workhorse, minor camp ankle sprain flagged Week 1 questionable, not serious.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3) &mdash; confirmed RB4","nfl_mcp injury sweep","FFC ADP (9/4)"]},
+    "Caleb Williams": {t:"pri", note:"Dynasty QB4 at age 24.8 &mdash; strong long-term superflex anchor. SF-adjusted timing puts him in the pick-44-45 range.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3) &mdash; confirmed QB4"]},
+    "Jaxson Dart": {t:"pri", note:"Dynasty QB9 at age 23.3 &mdash; good buy given superflex QB scarcity plus youth. SF-adjusted timing lands around pick 80-81.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3) &mdash; confirmed QB9"]},
+    "Trey McBride": {t:"pri", note:"Dynasty TE2. Real ADP ~29 &mdash; earlier than the points board's TE1 slot suggests. TE well runs dry fast, take the position on this timeline, not the points-rank timeline.", srcs:["Stone Cold Fantasy board","StatHead dynasty values, superflex (9/3)","FFC ADP (9/4)"]},
+    "Brock Bowers": {t:"pri", note:"Dynasty <b>TE1</b> in superflex. Real ADP ~35 &mdash; noticeably earlier than the points board's rank ~57 implied. Prioritize on the real timeline.", srcs:["Stone Cold Fantasy board","StatHead dynasty values, superflex (9/3) &mdash; confirmed TE1","FFC ADP (9/4)"]},
+    "Josh Allen": {t:"watch", note:"Dynasty QB1. SF-adjusted ADP ~4 &mdash; effectively a top-4 pick in this format, not a round-3 value like 1QB ADP implies. No divergence in value, just confirms he's a true 1.04-caliber pick here.", srcs:["Stone Cold Fantasy board","StatHead dynasty values, superflex (9/3)","FFC ADP (9/4) + SF heuristic"]},
+    "Lamar Jackson": {t:"watch", note:"Dynasty QB3. Dynasty value on a rushing QB this age (29.6) can fall off a cliff after one bad year &mdash; worth listening to a strong trade offer mid-season.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3)"]},
+    "Patrick Mahomes": {t:"watch", note:"Dynasty rank has fallen to <b>QB10</b> in superflex &mdash; below Burrow, Jefferson, Daniels, Nabers, McBride, Love, and Jeanty. Sell-high signal, not a buy: if he falls cheap, other dynasty managers won't let him fall far.", srcs:["DynastyProcess values-players.csv (8/28)","StatHead dynasty values, superflex (9/3) &mdash; confirmed QB10"]},
+    "Jordyn Tyson": {t:"watch", note:"Opened the season on IR, out at least 4 games. Prospect model also flags real bust risk (37.7% bustProb).", srcs:["nfl_mcp injury sweep","StatHead prospect model, 2026 rookie class"]},
+    "Carnell Tate": {t:"watch", note:"Dynasty WR18 in superflex at age 21.6, but the prospect model flags real bust risk too (33.2% bustProb) &mdash; a target, not a lock.", srcs:["StatHead dynasty values, superflex (9/3)","StatHead prospect model, 2026 rookie class"]},
+    "Fernando Mendoza": {t:"pri", note:"Highest grade in the entire 2026 rookie class &mdash; <b>97, \"Generational\"</b>. Already dynasty QB14 (age 22.9) despite sitting at redraft rank 170. No FFC ADP data exists for him (outside the tracked top-150 pool) &mdash; expect him available very late given his board rank, and treat that as a gap in market pricing, not a gap in the model's confidence.", srcs:["StatHead prospect model, 2026 rookie class","StatHead dynasty values, superflex (9/3)"]},
+    "Ty Simpson": {t:"pri", note:"Best risk profile of any rookie QB in the class: 26.4% boom vs. only 19.2% bust. No FFC ADP tracked (outside top-150) &mdash; a late, speculative superflex stash.", srcs:["StatHead prospect model, 2026 rookie class"]}
+  };
+
+  var AUTO_SRC = ["Stone Cold Fantasy board (tier)","FFC ADP, 10-tm PPR (9/4)","StatHead dynasty values, superflex (9/3)"];
+
+  var byPos = {QB:[], RB:[], WR:[], TE:[]};
+  players.forEach(function(p){ if(byPos[p.position]) byPos[p.position].push(p); });
+
+  function chip(tag){
+    if(tag==="fade") return '<span class="chip fade">fade</span>';
+    if(tag==="pri") return '<span class="chip pri">prioritize</span>';
+    if(tag==="watch") return '<span class="chip watch">age-watch</span>';
+    return '';
+  }
+
+  function adpGapNote(p){
+    if(typeof p.sfAdjAdp !== 'number') return null;
+    var diff = p.sfAdjAdp - p.rank;
+    if (Math.abs(diff) < 8) return null;
+    if (diff < 0) {
+      return 'This board ranked him #'+p.rank+', but real market ADP has him gone around pick '+Math.round(p.sfAdjAdp)+' &mdash; noticeably <b>earlier</b> than the points-rank suggests. Don\'t expect him to fall to his board rank.';
+    }
+    return 'This board ranked him #'+p.rank+', but real market ADP has him going around pick '+Math.round(p.sfAdjAdp)+' &mdash; <b>later</b> than the points-rank suggests. He may be a value if he\'s still there near his board rank.';
+  }
+
+  function adpCell(p){
+    if (typeof p.sfAdjAdp !== 'number') return '<span style="color:var(--ink-faint)">adp n/a</span>';
+    return 'ADP ~'+Math.round(p.sfAdjAdp);
+  }
+
+  function detailHtml(p, tag){
+    var dynStr = (typeof p.dynPosRank === 'number') ? (p.position + p.dynPosRank + (p.dynAge ? ' &middot; age ' + p.dynAge : '')) : 'not in top-300 dynasty superflex board';
+    var marketAdp = (typeof p.ffcAdp === 'number') ? p.ffcAdp : null;
+    var sfAdp = (typeof p.sfAdjAdp === 'number') ? p.sfAdjAdp : null;
+    var stats = ''
+      + '<div class="stat"><span class="k">Board rank</span><span class="v">'+p.rank+' (tier '+p.tier+')</span></div>'
+      + '<div class="stat"><span class="k">Market ADP (1QB PPR)</span><span class="v">'+(marketAdp!==null ? marketAdp : 'not tracked') +'</span></div>'
+      + '<div class="stat"><span class="k">' + (p.position==='QB' ? 'SF-adjusted ADP' : 'Real ADP (this format)') + '</span><span class="v">'+(sfAdp!==null ? '~'+Math.round(sfAdp) : 'not tracked')+'</span></div>'
+      + '<div class="stat"><span class="k">Dynasty superflex rank</span><span class="v">'+dynStr+'</span></div>'
+      + '<div class="stat"><span class="k">Team / bye</span><span class="v">'+p.team+' &middot; bye '+p.bye+'</span></div>';
+    var gap = adpGapNote(p);
+    var reasoning, srcs;
+    if(tag){
+      reasoning = '<p class="reasoning">'+tag.note+'</p>';
+      srcs = tag.srcs || AUTO_SRC;
+    } else {
+      var cmp = (typeof p.dynPosRank === 'number')
+        ? ' No meaningful redraft/dynasty divergence was flagged for him in our research pass &mdash; his dynasty '+p.position+p.dynPosRank+' slot is broadly in line with expectations.'
+        : ' He sits outside the top-300 dynasty superflex value board &mdash; a market judgment, not missing data.';
+      reasoning = '<p class="reasoning">Not individually researched in the fade/prioritize pass.'+cmp+'</p>';
+      srcs = AUTO_SRC;
+    }
+    var srcPills = srcs.map(function(s){ return '<span class="src-pill">'+s+'</span>'; }).join('');
+    var gapHtml = gap ? '<p class="gapnote">'+gap+'</p>' : '';
+    return '<div class="detail-wrap">'+stats+reasoning+gapHtml+'<div class="srcs">'+srcPills+'</div></div>';
+  }
+
+  var draftedNames = {};
+
+  function renderBoard(){
+    Object.keys(byPos).forEach(function(pos){
+      var rows = byPos[pos];
+      var tiers = {};
+      rows.forEach(function(p){ (tiers[p.tier] = tiers[p.tier] || []).push(p); });
+      var tierNums = Object.keys(tiers).map(Number).sort(function(a,b){return a-b;});
+      var html = '';
+      tierNums.forEach(function(tn){
+        var list = tiers[tn];
+        html += '<div class="tier-block"><div class="tier-label">Tier <b>'+tn+'</b> &middot; '+list.length+' player'+(list.length>1?'s':'')+'</div><table><tbody>';
+        list.forEach(function(p){
+          var tag = TAGS[p.name];
+          var gap = adpGapNote(p);
+          var drafted = draftedNames[p.name.toLowerCase()];
+          html += '<tr class="prow'+(drafted?' drafted':'')+'" data-target="'+p.rank+'" data-pname="'+p.name.toLowerCase()+'">'
+            + '<td class="rank num">'+p.rank+'</td>'
+            + '<td class="name">'+p.name+'</td>'
+            + '<td class="adp num">'+adpCell(p)+'</td>'
+            + '<td class="team num">'+p.team+'</td>'
+            + '<td class="bye num">bye '+p.bye+'</td>'
+            + '<td class="tag">'+(tag?chip(tag.t):'')+(gap&&!tag?'<span class="chip gap">adp-gap</span>':'')+'</td>'
+            + '</tr>';
+          html += '<tr class="detail-row" data-target="'+p.rank+'"><td colspan="6">'+detailHtml(p, tag)+'</td></tr>';
+        });
+        html += '</tbody></table></div>';
+      });
+      document.getElementById(pos+'-body').innerHTML = html;
+    });
+    document.querySelectorAll('tr.prow').forEach(function(row){
+      row.addEventListener('click', function(){
+        var id = row.getAttribute('data-target');
+        var detail = row.parentNode.querySelector('tr.detail-row[data-target="'+id+'"]');
+        var opening = !row.classList.contains('open');
+        row.classList.toggle('open', opening);
+        if(detail) detail.classList.toggle('open', opening);
+      });
+    });
+  }
+  renderBoard();
+
+  // ---------- People / plans / toggle ----------
+  var PEOPLE = {
+    micah: {
+      label:'Micah', team:'Salvation Army', owner:'micah7586', slot:4,
+      picks:['1.04','2.07','3.04','4.07','5.04','6.07','7.04','8.07','9.04','10.07'],
+      overalls:[4,17,24,37,44,57,64,77,84,97],
+      plan: [
+        {pk:'1.04', ov:'4th', primary:'Ja\'Marr Chase or Puka Nacua if either is still there (both hover right at this ADP); otherwise Jaxon Smith-Njigba or Amon-Ra St. Brown.', why:'Gibbs/Bijan (ADP 1.5/2.4) will almost certainly be gone. Skip Christian McCaffrey/Jonathan Taylor even though they will likely still be on the board (ADP ~6-7) &mdash; both fade-tagged.'},
+        {pk:'2.07', ov:'17th', primary:'A.J. Brown, George Pickens, or Ashton Jeanty (prioritize, real ADP ~21, close).', why:'Dak Prescott/Jayden Daniels-tier QBs (ADP ~20-25) may not have reached yet at 17th &mdash; recheck live.'},
+        {pk:'3.04', ov:'24th', primary:'Jeremiyah Love, Malik Nabers, or Garrett Wilson &mdash; the prioritize cluster lands almost exactly here (ADP 26-27).', why:'This is the single best value window on the whole plan: real ADP puts the biggest dynasty-riser cluster right at your pick. Trey McBride (ADP ~29) occasionally survives too.'},
+        {pk:'4.07', ov:'37th', primary:'Travis Etienne, Ladd McConkey, or a QB2 in the Brock Purdy tier.', why:'Both McBride (29) and Bowers (35) are very likely gone by now &mdash; don\'t wait on TE hoping for a round-4 discount like the old points-rank plan implied.'},
+        {pk:'5.04', ov:'44th', primary:'D\'Andre Swift, Jaylen Waddle, or Caleb Williams (prioritize QB, real ADP ~45 &mdash; a good value window for him specifically).', why:'Solid depth round; Caleb Williams lines up almost exactly here by real timing.'},
+        {pk:'6.07', ov:'57th', primary:'Jared Goff-tier QB depth, Christian Watson/Courtland Sutton WR depth, or Colston Loveland (TE2 prioritize) if he survives (ADP ~55, right on the margin).', why:'TE window #2 &mdash; check live whether Loveland is still there.'},
+        {pk:'7.04', ov:'64th', primary:'Tyler Warren (TE, prioritize) is the realistic TE target here, not round 4. TreVeyon Henderson/DK Metcalf depth.', why:'This is where TE actually clears by real ADP, not where the old points-rank plan guessed.'},
+        {pk:'8.07', ov:'77th', primary:'Michael Pittman, Chris Godwin, Carnell Tate depth; Jaxson Dart (prioritize QB) often lands right here (ADP ~81).', why:'Roster-building round with a real shot at Dart specifically.'},
+        {pk:'9.04', ov:'84th', primary:'Wan\'Dale Robinson, J.K. Dobbins depth. Fernando Mendoza has no tracked ADP (outside FFC\'s pool) &mdash; expect him available given his 170 board rank.', why:'Mendoza is a legitimate value grab if he\'s there &mdash; the market hasn\'t priced the model grade in.'},
+        {pk:'10.07', ov:'97th', primary:'Last defensible depth piece; Ty Simpson likewise untracked by ADP &mdash; expect available as a speculative QB stash.', why:'Rounds 11-28 are live-tracking territory, not pre-planned.'}
+      ]
+    },
+    colby: {
+      label:'Colby', team:'Burger Slinger', owner:'TGSeal', slot:7,
+      picks:['1.07','2.04','3.07','4.04','5.07','6.04','7.07','8.04','9.07','10.04'],
+      overalls:[7,14,27,34,47,54,67,74,87,94],
+      plan: [
+        {pk:'1.07', ov:'7th', primary:'De\'Von Achane, CeeDee Lamb, James Cook, or Justin Jefferson; Drake Maye (QB, real ADP ~8) as a first SF anchor.', why:'By pick 7, the true top tier (Gibbs/Bijan/Nacua/Chase/JSN/McCaffrey/St. Brown, all ADP under 7) is gone. Jonathan Taylor (fade) is also live here (ADP ~7) &mdash; same call as Micah: skip him for a younger asset.'},
+        {pk:'2.04', ov:'14th', primary:'Lamar Jackson (QB) or A.J. Brown/Chris Olave; skip Derrick Henry and Saquon Barkley even though both are live here (ADP ~16-18) &mdash; both fade-tagged.', why:'Second anchor round &mdash; lock QB or a true WR1.'},
+        {pk:'3.07', ov:'27th', primary:'Malik Nabers, Garrett Wilson, or Jeremiyah Love &mdash; the prioritize cluster (ADP 26-27), same value window Micah gets one pick later.', why:'Best value window on Colby\'s plan too.'},
+        {pk:'4.04', ov:'34th', primary:'Brock Bowers (TE1, prioritize) &mdash; real ADP ~35, lines up almost exactly here. Jalen Hurts, Emeka Egbuka, or Tee Higgins otherwise.', why:'Colby gets first real crack at Bowers before Micah\'s round 4 (37th) &mdash; a round-4 TE1 is a strong value if he\'s still on the board.'},
+        {pk:'5.07', ov:'47th', primary:'D.J. Moore, Terry McLaurin, Quinshon Judkins depth; Trevor Lawrence QB depth (ADP ~51-52, close).', why:'Solid WR/RB depth round.'},
+        {pk:'6.04', ov:'54th', primary:'Colston Loveland (TE2, prioritize, real ADP ~55 &mdash; right here) or Rome Odunze/David Montgomery.', why:'Second TE window, better odds than Micah\'s (his lands one round later at 57th).'},
+        {pk:'7.07', ov:'67th', primary:'Justin Herbert (QB depth), Alec Pierce, or Jadarian Price.', why:'Depth-building round.'},
+        {pk:'8.04', ov:'74th', primary:'Carnell Tate (watch-tagged WR), Michael Pittman, or Bo Nix (QB depth); Harold Fannin (TE3 tier) region.', why:'Roster-building, not name value.'},
+        {pk:'9.07', ov:'87th', primary:'J.K. Dobbins, Baker Mayfield (QB depth), or Jonathon Brooks.', why:'Depth round.'},
+        {pk:'10.04', ov:'94th', primary:'RJ Harvey, Quentin Johnston, or Kyler Murray (QB depth).', why:'Last planned pick &mdash; rounds 11-28 are live-tracking territory.'}
+      ]
+    }
+  };
+
+  var current = 'micah';
+  try{ var savedP = localStorage.getItem('cheatsheet-person'); if(savedP==='colby'||savedP==='micah') current = savedP; }catch(e){}
+
+  function renderPerson(){
+    var p = PEOPLE[current];
+    document.querySelectorAll('.toggle button').forEach(function(b){ b.classList.toggle('active', b.dataset.person===current); });
+    document.getElementById('slot-value').textContent = p.slot + ' of 10';
+    document.getElementById('team-value').textContent = p.team + ' (' + p.owner + ')';
+    document.getElementById('plan-note').textContent = p.label + ' · picks ' + p.picks[0] + '–' + p.picks[p.picks.length-1] + ' · built from real ADP, not raw board rank';
+    var chipsHtml = p.picks.map(function(pk){ return '<span class="pick-chip">'+pk+'</span>'; }).join('') + '<span class="pick-chip" style="opacity:.6">then alternating &rarr;</span>';
+    document.getElementById('picks-row').innerHTML = chipsHtml;
+    document.getElementById('plan-body').innerHTML = p.plan.map(function(r){
+      return '<tr><td class="pk">'+r.pk+'</td><td class="ov">'+r.ov+'</td><td>'+r.primary+'</td><td>'+r.why+'</td></tr>';
+    }).join('');
+    try{ localStorage.setItem('cheatsheet-person', current); }catch(e){}
+  }
+  document.querySelectorAll('.toggle button').forEach(function(b){
+    b.addEventListener('click', function(){ current = b.dataset.person; renderPerson(); });
+  });
+  renderPerson();
+
+  // ---------- Tab nav ----------
+  var buttons = document.querySelectorAll('nav button');
+  function show(pos){
+    document.querySelectorAll('.tabpane').forEach(function(s){ s.classList.toggle('active', s.dataset.pos===pos); });
+    document.querySelector('.legend').classList.toggle('active', pos==='LEGEND');
+    document.querySelector('.gloss').classList.toggle('active', pos==='GLOSS');
+    buttons.forEach(function(b){ b.classList.toggle('active', b.dataset.pos===pos); });
+    try{ localStorage.setItem('cheatsheet-tab', pos); }catch(e){}
+  }
+  buttons.forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.pos); }); });
+  var start = 'LIVE';
+  try{ var saved = localStorage.getItem('cheatsheet-tab'); if(saved) start = saved; }catch(e){}
+  show(start);
+
+  // ---------- Live draft tracking: direct client-side polling of Sleeper's public API ----------
+  var DRAFT_ID = '1387608791989628928';
+  var TEAMS = 10, ROUNDS = 28;
+  var SLOT_TO_ROSTER = {1:10,2:8,3:3,4:7,5:1,6:6,7:4,8:2,9:5,10:9};
+  var ROSTER_INFO = {
+    1:{owner:'nupper26', team:'nupper26'},
+    2:{owner:'easttman', team:'Nailor? barely know her'},
+    3:{owner:'Damian1102', team:'Damian1102'},
+    4:{owner:'TGSeal', team:'Burger Slinger', who:'colby'},
+    5:{owner:'bigupps', team:'We are C. Kirk'},
+    6:{owner:'TheDotester', team:'$140 Niners'},
+    7:{owner:'micah7586', team:'Salvation Army', who:'micah'},
+    8:{owner:'EdIrish', team:'EdIrish'},
+    9:{owner:'LucaBrasee', team:'Swimming with the Fishes'},
+    10:{owner:'bamcradley', team:'bamcradley'}
+  };
+
+  function normName(n){
+    return (n||'').replace(/\./g,'').replace(/\b(Jr|Sr|II|III|IV)\b\.?/gi,'').replace(/[^a-zA-Z' ]/g,'').trim().toLowerCase();
+  }
+  var playersByNormName = {};
+  players.forEach(function(p){ playersByNormName[normName(p.name)] = p; });
+
+  var livePill = document.getElementById('live-pill');
+  var livePillText = document.getElementById('live-pill-text');
+  var liveHeading = document.getElementById('live-heading');
+  var liveStatusText = document.getElementById('live-status-text');
+  var onClockText = document.getElementById('on-clock-text');
+  var picklogEl = document.getElementById('picklog');
+  var rosterMicahEl = document.getElementById('roster-micah');
+  var rosterColbyEl = document.getElementById('roster-colby');
+
+  function slotForPick(overall){
+    var round = Math.ceil(overall / TEAMS);
+    var posInRound = ((overall - 1) % TEAMS) + 1;
+    var slot = (round % 2 === 1) ? posInRound : (TEAMS + 1 - posInRound);
+    return {round:round, slot:slot, rosterId: SLOT_TO_ROSTER[slot]};
+  }
+
+  function applyPicks(picks){
+    draftedNames = {};
+    var rosters = {micah:[], colby:[]};
+    var enriched = picks.map(function(pk){
+      var name = ((pk.metadata && pk.metadata.first_name) || '') + ' ' + ((pk.metadata && pk.metadata.last_name) || '');
+      name = name.trim();
+      var boardMatch = playersByNormName[normName(name)];
+      draftedNames[normName(name)] = true;
+      var info = ROSTER_INFO[pk.roster_id] || {};
+      var rec = {
+        overall: pk.pick_no, round: pk.round, playerName: boardMatch ? boardMatch.name : name,
+        position: (pk.metadata && pk.metadata.position) || (boardMatch && boardMatch.position) || '',
+        nflTeam: (pk.metadata && pk.metadata.team) || (boardMatch && boardMatch.team) || '',
+        rosterId: pk.roster_id, teamName: info.team || ('Roster ' + pk.roster_id)
+      };
+      if(info.who === 'micah') rosters.micah.push(rec);
+      if(info.who === 'colby') rosters.colby.push(rec);
+      return rec;
+    });
+    renderBoard();
+    var log = enriched.slice().sort(function(a,b){ return b.overall - a.overall; }).slice(0,25);
+    if(log.length){
+      picklogEl.innerHTML = log.map(function(x){
+        var who = ROSTER_INFO[x.rosterId] && ROSTER_INFO[x.rosterId].who;
+        var chipClass = who === 'micah' ? 'micah' : (who === 'colby' ? 'colby' : '');
+        var chipLabel = who === 'micah' ? 'MIC' : (who === 'colby' ? 'COL' : x.teamName);
+        return '<li><span class="pno num">'+x.overall+'</span><span class="pname">'+x.playerName+' <span class="by-chip '+chipClass+'">'+chipLabel+'</span></span><span class="pteam">'+x.position+' '+x.nflTeam+'</span></li>';
+      }).join('');
+    } else {
+      picklogEl.innerHTML = '<li class="roster-list empty" style="border:none">No picks yet &mdash; check back once the draft starts.</li>';
+    }
+    ['micah','colby'].forEach(function(who){
+      var el = who==='micah' ? rosterMicahEl : rosterColbyEl;
+      var list = rosters[who];
+      if(!list.length){ el.innerHTML = '<li class="empty">No picks yet</li>'; return; }
+      el.innerHTML = list.sort(function(a,b){return a.overall-b.overall;}).map(function(x){
+        return '<li><span>'+x.playerName+'</span><span class="pteam num">'+x.position+' &middot; pick '+x.overall+'</span></li>';
+      }).join('');
+    });
+    livePillText.textContent = enriched.length > 0 ? (enriched.length + ' picks made') : 'waiting for draft';
+    if(enriched.length > 0){
+      livePill.classList.add('on');
+      liveHeading.textContent = 'Draft in progress';
+      liveStatusText.textContent = enriched.length + ' of ' + (TEAMS*ROUNDS) + ' picks made — updating live.';
+    } else {
+      livePill.classList.add('on');
+      liveHeading.textContent = 'Draft not started yet';
+      liveStatusText.textContent = 'Connected to Sleeper — polling every 5 seconds. 0 of ' + (TEAMS*ROUNDS) + ' picks made.';
+    }
+    if(enriched.length < TEAMS*ROUNDS){
+      var next = slotForPick(enriched.length + 1);
+      var info = ROSTER_INFO[next.rosterId] || {};
+      var who = info.who === 'micah' ? ' — that\'s YOU, Micah' : (info.who === 'colby' ? ' — that\'s YOU, Colby' : '');
+      onClockText.textContent = 'Round ' + next.round + ', pick ' + (enriched.length+1) + ' overall — ' + (info.team || ('Roster '+next.rosterId)) + who;
+    } else {
+      onClockText.textContent = 'Draft complete';
+    }
+  }
+
+  async function pollDraft(){
+    try{
+      var res = await fetch('https://api.sleeper.app/v1/draft/' + DRAFT_ID + '/picks', {cache:'no-store'});
+      if(!res.ok) throw new Error('bad status ' + res.status);
+      var picks = await res.json();
+      applyPicks(picks || []);
+    } catch(e){
+      livePillText.textContent = 'reconnecting…';
+      livePill.classList.remove('on');
+    }
+  }
+  pollDraft();
+  setInterval(pollDraft, 5000);
+})();
+</script>
+</body>
+</html>
