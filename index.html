@@ -358,8 +358,16 @@
 
   <div class="tabpane" data-pos="PLAN">
     <div class="pos-head"><h2 style="color:var(--accent)">Round-by-round draft plan</h2><span class="note" id="plan-note">Micah &middot; picks 1.04&ndash;10.07 &middot; built from real ADP, not raw board rank</span></div>
+    <div class="card" id="plan-live-card">
+      <h3 id="plan-live-heading">Your status</h3>
+      <p id="plan-live-text" style="margin-bottom:0">Waiting for the draft to start &mdash; timing below is pre-draft.</p>
+    </div>
+    <div class="card" id="plan-avail-card">
+      <h3>Available right now, by real ADP</h3>
+      <p id="plan-avail-text" style="margin-bottom:0">This recomputes live from the actual pick feed &mdash; every player already drafted (by anyone, any position) is removed automatically, so this list is never stale once the draft is underway. Right now it's showing the pre-draft snapshot since no picks exist yet.</p>
+    </div>
     <div class="card">
-      <p style="margin-bottom:8px">Availability windows below use real market ADP (RB/WR/TE) plus the labeled superflex QB-timing curve (see Sources tab) &mdash; not the board's points-rank, which doesn't track real draft order. Treat these as probability-weighted, not guaranteed: ADP has real variance, and one positional run can shift everything downstream.</p>
+      <p style="margin-bottom:8px">The table below is the pre-draft plan &mdash; realistic targets per pick, reasoned out in advance from real market ADP (RB/WR/TE) plus the labeled superflex QB-timing curve (see Sources tab), not the board's points-rank. Any named player already drafted gets struck through automatically. Treat un-struck names as probability-weighted, not guaranteed: ADP has real variance, and one positional run can shift everything downstream &mdash; that's what the "Available right now" card above is for.</p>
       <p style="margin-bottom:0;font-size:12.5px;color:var(--ink-faint)" id="plan-target-mix">Target mix through pick 10: 2 QBs, 3&ndash;4 RBs, 3&ndash;4 WRs, 1&ndash;2 TEs.</p>
     </div>
     <div style="overflow-x:auto"><table class="plan-table"><thead><tr><th>Pick</th><th>Overall</th><th>Realistic targets (by ADP)</th><th>Why</th></tr></thead><tbody id="plan-body"></tbody></table></div>
@@ -521,16 +529,16 @@
       picks:['1.04','2.07','3.04','4.07','5.04','6.07','7.04','8.07','9.04','10.07'],
       overalls:[4,17,24,37,44,57,64,77,84,97],
       plan: [
-        {pk:'1.04', ov:'4th', primary:'Ja\'Marr Chase or Puka Nacua if either is still there (both hover right at this ADP); otherwise Jaxon Smith-Njigba or Amon-Ra St. Brown.', why:'Gibbs/Bijan (ADP 1.5/2.4) will almost certainly be gone. Skip Christian McCaffrey/Jonathan Taylor even though they will likely still be on the board (ADP ~6-7) &mdash; both fade-tagged.'},
-        {pk:'2.07', ov:'17th', primary:'A.J. Brown, George Pickens, or Ashton Jeanty (prioritize, real ADP ~21, close).', why:'Dak Prescott/Jayden Daniels-tier QBs (ADP ~20-25) may not have reached yet at 17th &mdash; recheck live.'},
-        {pk:'3.04', ov:'24th', primary:'Jeremiyah Love, Malik Nabers, or Garrett Wilson &mdash; the prioritize cluster lands almost exactly here (ADP 26-27).', why:'This is the single best value window on the whole plan: real ADP puts the biggest dynasty-riser cluster right at your pick. Trey McBride (ADP ~29) occasionally survives too.'},
-        {pk:'4.07', ov:'37th', primary:'Travis Etienne, Ladd McConkey, or a QB2 in the Brock Purdy tier.', why:'Both McBride (29) and Bowers (35) are very likely gone by now &mdash; don\'t wait on TE hoping for a round-4 discount like the old points-rank plan implied.'},
-        {pk:'5.04', ov:'44th', primary:'D\'Andre Swift, Jaylen Waddle, or Caleb Williams (prioritize QB, real ADP ~45 &mdash; a good value window for him specifically).', why:'Solid depth round; Caleb Williams lines up almost exactly here by real timing.'},
-        {pk:'6.07', ov:'57th', primary:'Jared Goff-tier QB depth, Christian Watson/Courtland Sutton WR depth, or Colston Loveland (TE2 prioritize) if he survives (ADP ~55, right on the margin).', why:'TE window #2 &mdash; check live whether Loveland is still there.'},
-        {pk:'7.04', ov:'64th', primary:'Tyler Warren (TE, prioritize) is the realistic TE target here, not round 4. TreVeyon Henderson/DK Metcalf depth.', why:'This is where TE actually clears by real ADP, not where the old points-rank plan guessed.'},
-        {pk:'8.07', ov:'77th', primary:'Michael Pittman, Chris Godwin, Carnell Tate depth; Jaxson Dart (prioritize QB) often lands right here (ADP ~81).', why:'Roster-building round with a real shot at Dart specifically.'},
-        {pk:'9.04', ov:'84th', primary:'Wan\'Dale Robinson, J.K. Dobbins depth. Fernando Mendoza has no tracked ADP (outside FFC\'s pool) &mdash; expect him available given his 170 board rank.', why:'Mendoza is a legitimate value grab if he\'s there &mdash; the market hasn\'t priced the model grade in.'},
-        {pk:'10.07', ov:'97th', primary:'Last defensible depth piece; Ty Simpson likewise untracked by ADP &mdash; expect available as a speculative QB stash.', why:'Rounds 11-28 are live-tracking territory, not pre-planned.'}
+        {pk:'1.04', ov:'4th', primary:'Ja\'Marr Chase or Puka Nacua if either is still there (both hover right at this ADP); otherwise Jaxon Smith-Njigba or Amon-Ra St. Brown.', why:'Gibbs/Bijan (ADP 1.5/2.4) will almost certainly be gone. Skip Christian McCaffrey/Jonathan Taylor even though they will likely still be on the board (ADP ~6-7) &mdash; both fade-tagged.', names:['Ja\'Marr Chase','Puka Nacua','Jaxon Smith-Njigba','Amon-Ra St. Brown','Christian McCaffrey','Jonathan Taylor']},
+        {pk:'2.07', ov:'17th', primary:'A.J. Brown, George Pickens, or Ashton Jeanty (prioritize, real ADP ~21, close).', why:'Dak Prescott/Jayden Daniels-tier QBs (ADP ~20-25) may not have reached yet at 17th &mdash; recheck live.', names:['A.J. Brown','George Pickens','Ashton Jeanty','Dak Prescott','Jayden Daniels']},
+        {pk:'3.04', ov:'24th', primary:'Jeremiyah Love, Malik Nabers, or Garrett Wilson &mdash; the prioritize cluster lands almost exactly here (ADP 26-27).', why:'This is the single best value window on the whole plan: real ADP puts the biggest dynasty-riser cluster right at your pick. Trey McBride (ADP ~29) occasionally survives too.', names:['Jeremiyah Love','Malik Nabers','Garrett Wilson','Trey McBride']},
+        {pk:'4.07', ov:'37th', primary:'Travis Etienne, Ladd McConkey, or a QB2 in the Brock Purdy tier.', why:'Both McBride (29) and Bowers (35) are very likely gone by now &mdash; don\'t wait on TE hoping for a round-4 discount like the old points-rank plan implied.', names:['Travis Etienne','Ladd McConkey','Brock Purdy','Trey McBride','Brock Bowers']},
+        {pk:'5.04', ov:'44th', primary:'D\'Andre Swift, Jaylen Waddle, or Caleb Williams (prioritize QB, real ADP ~45 &mdash; a good value window for him specifically).', why:'Solid depth round; Caleb Williams lines up almost exactly here by real timing.', names:['D\'Andre Swift','Jaylen Waddle','Caleb Williams']},
+        {pk:'6.07', ov:'57th', primary:'Jared Goff-tier QB depth, Christian Watson/Courtland Sutton WR depth, or Colston Loveland (TE2 prioritize) if he survives (ADP ~55, right on the margin).', why:'TE window #2 &mdash; check live whether Loveland is still there.', names:['Jared Goff','Christian Watson','Courtland Sutton','Colston Loveland']},
+        {pk:'7.04', ov:'64th', primary:'Tyler Warren (TE, prioritize) is the realistic TE target here, not round 4. TreVeyon Henderson/DK Metcalf depth.', why:'This is where TE actually clears by real ADP, not where the old points-rank plan guessed.', names:['Tyler Warren','TreVeyon Henderson','DK Metcalf']},
+        {pk:'8.07', ov:'77th', primary:'Michael Pittman, Chris Godwin, Carnell Tate depth; Jaxson Dart (prioritize QB) often lands right here (ADP ~81).', why:'Roster-building round with a real shot at Dart specifically.', names:['Michael Pittman','Chris Godwin','Carnell Tate','Jaxson Dart']},
+        {pk:'9.04', ov:'84th', primary:'Wan\'Dale Robinson, J.K. Dobbins depth. Fernando Mendoza has no tracked ADP (outside FFC\'s pool) &mdash; expect him available given his 170 board rank.', why:'Mendoza is a legitimate value grab if he\'s there &mdash; the market hasn\'t priced the model grade in.', names:['Wan\'Dale Robinson','J.K. Dobbins','Fernando Mendoza']},
+        {pk:'10.07', ov:'97th', primary:'Last defensible depth piece; Ty Simpson likewise untracked by ADP &mdash; expect available as a speculative QB stash.', why:'Rounds 11-28 are live-tracking territory, not pre-planned.', names:['Ty Simpson']}
       ]
     },
     colby: {
@@ -538,22 +546,70 @@
       picks:['1.07','2.04','3.07','4.04','5.07','6.04','7.07','8.04','9.07','10.04'],
       overalls:[7,14,27,34,47,54,67,74,87,94],
       plan: [
-        {pk:'1.07', ov:'7th', primary:'De\'Von Achane, CeeDee Lamb, James Cook, or Justin Jefferson; Drake Maye (QB, real ADP ~8) as a first SF anchor.', why:'By pick 7, the true top tier (Gibbs/Bijan/Nacua/Chase/JSN/McCaffrey/St. Brown, all ADP under 7) is gone. Jonathan Taylor (fade) is also live here (ADP ~7) &mdash; same call as Micah: skip him for a younger asset.'},
-        {pk:'2.04', ov:'14th', primary:'Lamar Jackson (QB) or A.J. Brown/Chris Olave; skip Derrick Henry and Saquon Barkley even though both are live here (ADP ~16-18) &mdash; both fade-tagged.', why:'Second anchor round &mdash; lock QB or a true WR1.'},
-        {pk:'3.07', ov:'27th', primary:'Malik Nabers, Garrett Wilson, or Jeremiyah Love &mdash; the prioritize cluster (ADP 26-27), same value window Micah gets one pick later.', why:'Best value window on Colby\'s plan too.'},
-        {pk:'4.04', ov:'34th', primary:'Brock Bowers (TE1, prioritize) &mdash; real ADP ~35, lines up almost exactly here. Jalen Hurts, Emeka Egbuka, or Tee Higgins otherwise.', why:'Colby gets first real crack at Bowers before Micah\'s round 4 (37th) &mdash; a round-4 TE1 is a strong value if he\'s still on the board.'},
-        {pk:'5.07', ov:'47th', primary:'D.J. Moore, Terry McLaurin, Quinshon Judkins depth; Trevor Lawrence QB depth (ADP ~51-52, close).', why:'Solid WR/RB depth round.'},
-        {pk:'6.04', ov:'54th', primary:'Colston Loveland (TE2, prioritize, real ADP ~55 &mdash; right here) or Rome Odunze/David Montgomery.', why:'Second TE window, better odds than Micah\'s (his lands one round later at 57th).'},
-        {pk:'7.07', ov:'67th', primary:'Justin Herbert (QB depth), Alec Pierce, or Jadarian Price.', why:'Depth-building round.'},
-        {pk:'8.04', ov:'74th', primary:'Carnell Tate (watch-tagged WR), Michael Pittman, or Bo Nix (QB depth); Harold Fannin (TE3 tier) region.', why:'Roster-building, not name value.'},
-        {pk:'9.07', ov:'87th', primary:'J.K. Dobbins, Baker Mayfield (QB depth), or Jonathon Brooks.', why:'Depth round.'},
-        {pk:'10.04', ov:'94th', primary:'RJ Harvey, Quentin Johnston, or Kyler Murray (QB depth).', why:'Last planned pick &mdash; rounds 11-28 are live-tracking territory.'}
+        {pk:'1.07', ov:'7th', primary:'De\'Von Achane, CeeDee Lamb, James Cook, or Justin Jefferson; Drake Maye (QB, real ADP ~8) as a first SF anchor.', why:'By pick 7, the true top tier (Gibbs/Bijan/Nacua/Chase/JSN/McCaffrey/St. Brown, all ADP under 7) is gone. Jonathan Taylor (fade) is also live here (ADP ~7) &mdash; same call as Micah: skip him for a younger asset.', names:['De\'Von Achane','CeeDee Lamb','James Cook','Justin Jefferson','Drake Maye','Jonathan Taylor']},
+        {pk:'2.04', ov:'14th', primary:'Lamar Jackson (QB) or A.J. Brown/Chris Olave; skip Derrick Henry and Saquon Barkley even though both are live here (ADP ~16-18) &mdash; both fade-tagged.', why:'Second anchor round &mdash; lock QB or a true WR1.', names:['Lamar Jackson','A.J. Brown','Chris Olave','Derrick Henry','Saquon Barkley']},
+        {pk:'3.07', ov:'27th', primary:'Malik Nabers, Garrett Wilson, or Jeremiyah Love &mdash; the prioritize cluster (ADP 26-27), same value window Micah gets one pick later.', why:'Best value window on Colby\'s plan too.', names:['Malik Nabers','Garrett Wilson','Jeremiyah Love']},
+        {pk:'4.04', ov:'34th', primary:'Brock Bowers (TE1, prioritize) &mdash; real ADP ~35, lines up almost exactly here. Jalen Hurts, Emeka Egbuka, or Tee Higgins otherwise.', why:'Colby gets first real crack at Bowers before Micah\'s round 4 (37th) &mdash; a round-4 TE1 is a strong value if he\'s still on the board.', names:['Brock Bowers','Jalen Hurts','Emeka Egbuka','Tee Higgins']},
+        {pk:'5.07', ov:'47th', primary:'D.J. Moore, Terry McLaurin, Quinshon Judkins depth; Trevor Lawrence QB depth (ADP ~51-52, close).', why:'Solid WR/RB depth round.', names:['D.J. Moore','Terry McLaurin','Quinshon Judkins','Trevor Lawrence']},
+        {pk:'6.04', ov:'54th', primary:'Colston Loveland (TE2, prioritize, real ADP ~55 &mdash; right here) or Rome Odunze/David Montgomery.', why:'Second TE window, better odds than Micah\'s (his lands one round later at 57th).', names:['Colston Loveland','Rome Odunze','David Montgomery']},
+        {pk:'7.07', ov:'67th', primary:'Justin Herbert (QB depth), Alec Pierce, or Jadarian Price.', why:'Depth-building round.', names:['Justin Herbert','Alec Pierce','Jadarian Price']},
+        {pk:'8.04', ov:'74th', primary:'Carnell Tate (watch-tagged WR), Michael Pittman, or Bo Nix (QB depth); Harold Fannin (TE3 tier) region.', why:'Roster-building, not name value.', names:['Carnell Tate','Michael Pittman','Bo Nix','Harold Fannin']},
+        {pk:'9.07', ov:'87th', primary:'J.K. Dobbins, Baker Mayfield (QB depth), or Jonathon Brooks.', why:'Depth round.', names:['J.K. Dobbins','Baker Mayfield','Jonathon Brooks']},
+        {pk:'10.04', ov:'94th', primary:'RJ Harvey, Quentin Johnston, or Kyler Murray (QB depth).', why:'Last planned pick &mdash; rounds 11-28 are live-tracking territory.', names:['RJ Harvey','Quentin Johnston','Kyler Murray']}
       ]
     }
   };
 
   var current = 'micah';
   try{ var savedP = localStorage.getItem('cheatsheet-person'); if(savedP==='colby'||savedP==='micah') current = savedP; }catch(e){}
+  var totalPicksMade = 0;
+
+  function strikeDrafted(text, names){
+    if(!names) return text;
+    names.forEach(function(n){
+      if(draftedNames[normName(n)]){
+        var esc = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        text = text.replace(new RegExp(esc, 'g'), '<s style="opacity:.55">'+n+'</s><span class="chip fade" style="font-size:8.5px;margin-left:3px">gone</span>');
+      }
+    });
+    return text;
+  }
+
+  function updatePlanLive(){
+    var p = PEOPLE[current];
+    var nextOv = null;
+    for(var i=0;i<p.overalls.length;i++){ if(p.overalls[i] > totalPicksMade){ nextOv = p.overalls[i]; break; } }
+    var headingEl = document.getElementById('plan-live-heading');
+    var textEl = document.getElementById('plan-live-text');
+    headingEl.textContent = p.label + '’s status';
+    if(totalPicksMade === 0){
+      textEl.innerHTML = 'Draft hasn\'t started. ' + p.label + '\'s first pick is <b>overall #'+p.overalls[0]+'</b> (' + p.picks[0] + ').';
+    } else if(nextOv === null){
+      textEl.textContent = 'All of ' + p.label + '\'s planned picks (through round 10) are in — check the Live Draft tab for anything after that.';
+    } else {
+      var picksUntil = nextOv - totalPicksMade - 1;
+      if(picksUntil <= 0){
+        textEl.innerHTML = '<b>' + p.label + ' is on the clock right now</b> — pick #' + (totalPicksMade+1) + ' overall.';
+      } else {
+        textEl.innerHTML = '<b>' + picksUntil + '</b> pick' + (picksUntil===1?'':'s') + ' until ' + p.label + '\'s next selection (overall #' + nextOv + ', ' + p.picks[p.overalls.indexOf(nextOv)] + ').';
+      }
+    }
+    var avail = players.filter(function(pl){ return typeof pl.sfAdjAdp === 'number' && !draftedNames[normName(pl.name)]; })
+                        .sort(function(a,b){ return a.sfAdjAdp - b.sfAdjAdp; })
+                        .slice(0, 10);
+    var availEl = document.getElementById('plan-avail-text');
+    if(totalPicksMade === 0){
+      availEl.textContent = 'Pre-draft snapshot (no live picks yet) — top of the real-ADP board: ' + avail.slice(0,6).map(function(pl){ return pl.name; }).join(', ') + '.';
+    } else {
+      availEl.innerHTML = 'As of <b>' + totalPicksMade + '</b> picks made, closest-to-the-clock undrafted players by real ADP: ' + avail.map(function(pl){ return pl.name + ' ('+pl.position+', ~'+Math.round(pl.sfAdjAdp)+')'; }).join(', ') + '.';
+    }
+    var rows = document.querySelectorAll('#plan-body tr');
+    rows.forEach(function(tr){ tr.classList.remove('next'); });
+    if(nextOv !== null){
+      var idx = p.overalls.indexOf(nextOv);
+      if(rows[idx]) rows[idx].classList.add('next');
+    }
+  }
 
   function renderPerson(){
     var p = PEOPLE[current];
@@ -561,13 +617,15 @@
     document.getElementById('slot-value').textContent = p.slot + ' of 10';
     document.getElementById('team-value').textContent = p.team + ' (' + p.owner + ')';
     document.getElementById('plan-note').textContent = p.label + ' · picks ' + p.picks[0] + '–' + p.picks[p.picks.length-1] + ' · built from real ADP, not raw board rank';
-    var chipsHtml = p.picks.map(function(pk){ return '<span class="pick-chip">'+pk+'</span>'; }).join('') + '<span class="pick-chip" style="opacity:.6">then alternating &rarr;</span>';
+    var chipsHtml = p.picks.map(function(pk, i){ return '<span class="pick-chip'+(draftedAtOverall(p.overalls[i])?' done':'')+'">'+pk+'</span>'; }).join('') + '<span class="pick-chip" style="opacity:.6">then alternating &rarr;</span>';
     document.getElementById('picks-row').innerHTML = chipsHtml;
     document.getElementById('plan-body').innerHTML = p.plan.map(function(r){
-      return '<tr><td class="pk">'+r.pk+'</td><td class="ov">'+r.ov+'</td><td>'+r.primary+'</td><td>'+r.why+'</td></tr>';
+      return '<tr><td class="pk">'+r.pk+'</td><td class="ov">'+r.ov+'</td><td>'+strikeDrafted(r.primary, r.names)+'</td><td>'+r.why+'</td></tr>';
     }).join('');
+    updatePlanLive();
     try{ localStorage.setItem('cheatsheet-person', current); }catch(e){}
   }
+  function draftedAtOverall(ov){ return totalPicksMade >= ov; }
   document.querySelectorAll('.toggle button').forEach(function(b){
     b.addEventListener('click', function(){ current = b.dataset.person; renderPerson(); });
   });
@@ -683,6 +741,8 @@
     } else {
       onClockText.textContent = 'Draft complete';
     }
+    totalPicksMade = enriched.length;
+    renderPerson();
   }
 
   async function pollDraft(){
