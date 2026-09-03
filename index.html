@@ -263,7 +263,7 @@
     </div>
     <div class="card" id="rec-card">
       <h3 style="display:flex;align-items:center;gap:8px">Claude's live recommendations <span class="live-pill" id="rec-pill" style="font-size:10px"><span class="dot"></span><span id="rec-pill-text">not connected</span></span></h3>
-      <p id="rec-empty-text" style="margin-bottom:0">No live recommendations pushed yet. During the draft, Claude watches this feed for your targets getting drafted, does a fresh research pass (news, injury status, updated projections), and pushes a new recommendation here — this panel checks for updates every ~10 seconds. Requires an active Claude session running the draft-night watch (see draft-research.md).</p>
+      <p id="rec-empty-text" style="margin-bottom:0">No live recommendations pushed yet. During the draft, Claude watches for your targets getting drafted, does a fresh research pass (news, injury status, updated projections), and pushes a new recommendation here — this panel checks for updates about every 75 seconds (rate-limited by GitHub's API, not by choice). Requires an active Claude session running the draft-night watch (see draft-research.md).</p>
       <ul class="picklog" id="rec-feed" style="display:none"></ul>
     </div>
     <div class="card">
@@ -778,7 +778,10 @@
   setInterval(pollDraft, 5000);
 
   // ---------- Live recommendations feed: Claude pushes JSON to the repo, this polls it ----------
-  var REC_FEED_URL = 'https://raw.githubusercontent.com/micah7586/fantasy-fuckboys-draft-board/master/data/rec-feed.json';
+  // Uses the GitHub Contents API (not raw.githubusercontent.com) deliberately: raw.githubusercontent.com's
+  // CDN ignores query-string cache-busting and can serve a stale copy for its full 5-minute TTL. The
+  // Contents API caches only 60s and is CORS-open, so updates show up within about a minute, worst case.
+  var REC_FEED_URL = 'https://api.github.com/repos/micah7586/fantasy-fuckboys-draft-board/contents/data/rec-feed.json?ref=master';
   var recPill = document.getElementById('rec-pill');
   var recPillText = document.getElementById('rec-pill-text');
   var recEmptyText = document.getElementById('rec-empty-text');
@@ -812,7 +815,7 @@
 
   async function pollRecFeed(){
     try{
-      var res = await fetch(REC_FEED_URL + '?t=' + Date.now(), {cache:'no-store'});
+      var res = await fetch(REC_FEED_URL, {headers:{Accept:'application/vnd.github.raw+json'}, cache:'no-store'});
       if(!res.ok){ recPillText.textContent = 'no feed yet'; recPill.classList.remove('on'); return; }
       var items = await res.json();
       recPill.classList.add('on');
@@ -827,7 +830,7 @@
     }
   }
   pollRecFeed();
-  setInterval(pollRecFeed, 10000);
+  setInterval(pollRecFeed, 75000);
 })();
 </script>
 </body>
