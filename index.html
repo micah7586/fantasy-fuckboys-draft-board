@@ -359,12 +359,12 @@
   <div class="legend" data-legend>
     <div class="card">
       <h3>Why some picks look "wrong" for this year</h3>
-      <p>The tiebreaker, when this year's board and dynasty value disagree, leans toward 2027+ &mdash; especially on Micah's team, since Colby manages it solo starting right after the draft. These tags carry that reasoning onto the board itself.</p>
+      <p><b style="color:var(--ink)">Two different strategies live on this one board.</b> Micah's team leans 2027+ &mdash; ties go to the younger asset, since Colby manages that roster solo starting right after the draft. Colby's own team (Burger Slinger) plays the opposite game: he wants to win 2026, full stop, and isn't banking on next season. Toggle between them and the tags below actually change for a handful of players (aging-but-productive vets like Jonathan Taylor and Saquon Barkley flip from "fade" to genuine targets for Colby; unproven dynasty-upside rookies like Jeremiyah Love get downgraded). Most tags don't change &mdash; a real injury absence or a player who's simply great now <i>and</i> later reads the same either way.</p>
       <ul>
-        <li><span class="chip fade">fade</span> &mdash; ranks well this year but dynasty value is meaningfully worse. Don't reach.</li>
-        <li><span class="chip pri">prioritize</span> &mdash; modest this-year rank but a dynasty riser. Worth taking a little early.</li>
-        <li><span class="chip watch">age-watch</span> &mdash; still the correct pick, elite enough the market hasn't discounted him. Watch his value, don't fade him.</li>
-        <li><span class="chip gap">adp-gap</span> &mdash; this board's rank and real market ADP disagree by 8+ picks. Trust ADP for timing, not the rank number.</li>
+        <li><span class="chip fade">fade</span> &mdash; ranks well this year but value is meaningfully worse by the active strategy's lens. Don't reach.</li>
+        <li><span class="chip pri">prioritize</span> &mdash; modest this-year rank but a riser by the active strategy's lens. Worth taking a little early.</li>
+        <li><span class="chip watch">age-watch</span> &mdash; still a fine pick, but worth extra attention — either the market hasn't caught up yet, or there's a real (non-dynasty) risk worth knowing about.</li>
+        <li><span class="chip gap">adp-gap</span> &mdash; this board's rank and real market ADP disagree by 8+ picks. Trust ADP for timing, not the rank number. Same for both drafters — this one's a data fact, not a strategy call.</li>
       </ul>
     </div>
     <div class="card">
@@ -376,6 +376,7 @@
 
   <div class="tabpane" data-pos="PLAN">
     <div class="pos-head"><h2 style="color:var(--accent)">Round-by-round draft plan</h2><span class="note" id="plan-note">Micah &middot; picks 1.04&ndash;10.07 &middot; built from real ADP, not raw board rank</span></div>
+    <div class="card" style="background:var(--surface-2)"><p id="plan-strategy-note" style="margin-bottom:0;font-size:13.5px;line-height:1.6"></p></div>
     <div class="card" id="plan-live-card">
       <h3 id="plan-live-heading">Your status</h3>
       <p id="plan-live-text" style="margin-bottom:0">Waiting for the draft to start &mdash; timing below is pre-draft.</p>
@@ -460,6 +461,34 @@
     "Ty Simpson": {t:"pri", note:"Best risk profile of any rookie QB in the class: 26.4% boom vs. only 19.2% bust. No FFC ADP tracked (outside top-150) &mdash; a late, speculative superflex stash.", srcs:["StatHead prospect model, 2026 rookie class"]}
   };
 
+  // Colby's own team plays to win 2026 -- he isn't banking on 2027+ the way Micah's team is (Colby
+  // manages Micah's roster after Micah deploys, but Colby's OWN team, Burger Slinger, is his call).
+  // A `null` entry deliberately CLEARS a dynasty-only tag for Colby's view (no 2026 relevance).
+  // Anything not listed here falls back to the shared TAGS entry -- used when the call doesn't change
+  // (a real injury/absence like Jacobs, or a player who's simply good both now and later like McBride).
+  var COLBY_OVERRIDES = {
+    "Christian McCaffrey": {t:"watch", note:"Age alone isn't a reason to fade him for a win-now team -- but the missed camp time (health/contract, still unconfirmed) is a real 2026 risk on its own. Watch the health news, don't avoid him purely on age the way the dynasty plan does.", srcs:["FFC ADP (9/4)"]},
+    "Jonathan Taylor": {t:"pri", note:"27.6 is a dynasty concern, not a this-year one. For a team trying to win in 2026, he's simply one of the best real-production RBs on the board -- target him, the dynasty age-cliff fade doesn't apply to your team.", srcs:["FFC ADP (9/4)","StatHead dynasty values, superflex (9/3)"]},
+    "Saquon Barkley": {t:"pri", note:"29.6 is a fine age for a single win-now season. No reason to pass on him the way the dynasty-lean fade does for Micah's team.", srcs:["FFC ADP (9/4)"]},
+    "Derrick Henry": {t:"watch", note:"32.7 carries real in-season workload/decline risk on its own -- this isn't only a dynasty-rebuild fade. Worth caution for different reasons than Micah's plan, not an automatic avoid.", srcs:["StatHead dynasty values, superflex (9/3)"]},
+    "Matthew Stafford": {t:"watch", note:"38.6 carries real performance/health risk this season by itself. Still worth caution for a win-now team, just not for the dynasty-fade reason.", srcs:["StatHead dynasty values, superflex (9/3)"]},
+    "Dak Prescott": {t:"pri", note:"33.1 is a non-issue for one season. Solid win-now QB target -- the dynasty age fade doesn't apply here.", srcs:["FFC ADP (9/4)"]},
+    "Jared Goff": {t:"pri", note:"31.9 is fine for 2026 production. Take him at his real value without the dynasty discount Micah's plan applies.", srcs:["FFC ADP (9/4)"]},
+    "Kenneth Walker III": null,
+    "Jeremiyah Love": {t:"watch", note:"Elite dynasty asset, but he's an unproven rookie for a team that needs 2026 production now. Fine value at his real ADP -- don't pay the dynasty-tier premium Micah's plan does.", srcs:["StatHead prospect model, 2026 rookie class"]},
+    "Ashton Jeanty": {t:"watch", note:"Same logic as Love -- real rookie-role uncertainty (plus the camp ankle issue) matters more for a win-now team than the dynasty upside does. Good value, not a priority reach.", srcs:["nfl_mcp injury sweep"]},
+    "Caleb Williams": {t:"watch", note:"Strong dynasty QB anchor, but a win-now team should rank a proven vet ahead of him at the same price -- 2nd-year QB variance is real.", srcs:["StatHead dynasty values, superflex (9/3)"]},
+    "Jaxson Dart": null,
+    "Fernando Mendoza": null,
+    "Ty Simpson": null,
+    "Patrick Mahomes": {t:"pri", note:"The dynasty \"sell-high\" signal doesn't apply to a win-now team -- he's simply an excellent current-production QB1. If he's cheap by this board's rank, that's a plain value buy, not a red flag.", srcs:["StatHead dynasty values, superflex (9/3)"]},
+    "Lamar Jackson": {t:"watch", note:"A great current-production QB, full stop -- no need to think about a mid-season sell-high trade the way Micah's plan does. Just a strong target if he's on the board.", srcs:["StatHead dynasty values, superflex (9/3)"]}
+  };
+  function getTagFor(name){
+    if(current === 'colby' && Object.prototype.hasOwnProperty.call(COLBY_OVERRIDES, name)) return COLBY_OVERRIDES[name];
+    return TAGS[name];
+  }
+
   var AUTO_SRC = ["Stone Cold Fantasy board (tier)","FFC ADP, 10-tm PPR (9/4)","StatHead dynasty values, superflex (9/3)"];
 
   var byPos = {QB:[], RB:[], WR:[], TE:[]};
@@ -527,7 +556,7 @@
         var list = tiers[tn];
         html += '<div class="tier-block"><div class="tier-label">Tier <b>'+tn+'</b> &middot; '+list.length+' player'+(list.length>1?'s':'')+'</div><table><tbody>';
         list.forEach(function(p){
-          var tag = TAGS[p.name];
+          var tag = getTagFor(p.name);
           var gap = adpGapNote(p);
           var drafted = draftedNames[p.name.toLowerCase()];
           html += '<tr class="prow'+(drafted?' drafted':'')+'" data-target="'+p.rank+'" data-pname="'+p.name.toLowerCase()+'">'
@@ -580,9 +609,9 @@
       picks:['1.07','2.04','3.07','4.04','5.07','6.04','7.07','8.04','9.07','10.04'],
       overalls:[7,14,27,34,47,54,67,74,87,94],
       plan: [
-        {pk:'1.07', ov:'7th', primary:'De\'Von Achane, CeeDee Lamb, James Cook, or Justin Jefferson; Drake Maye (QB, real ADP ~8) as a first SF anchor.', why:'By pick 7, the true top tier (Gibbs/Bijan/Nacua/Chase/JSN/McCaffrey/St. Brown, all ADP under 7) is gone. Jonathan Taylor (fade) is also live here (ADP ~7) &mdash; same call as Micah: skip him for a younger asset.', names:['De\'Von Achane','CeeDee Lamb','James Cook','Justin Jefferson','Drake Maye','Jonathan Taylor']},
-        {pk:'2.04', ov:'14th', primary:'Lamar Jackson (QB) or A.J. Brown/Chris Olave; skip Derrick Henry and Saquon Barkley even though both are live here (ADP ~16-18) &mdash; both fade-tagged.', why:'Second anchor round &mdash; lock QB or a true WR1.', names:['Lamar Jackson','A.J. Brown','Chris Olave','Derrick Henry','Saquon Barkley']},
-        {pk:'3.07', ov:'27th', primary:'Malik Nabers, Garrett Wilson, or Jeremiyah Love &mdash; the prioritize cluster (ADP 26-27), same value window Micah gets one pick later.', why:'Best value window on Colby\'s plan too.', names:['Malik Nabers','Garrett Wilson','Jeremiyah Love']},
+        {pk:'1.07', ov:'7th', primary:'De\'Von Achane, CeeDee Lamb, James Cook, Justin Jefferson, or Jonathan Taylor (ADP ~7, and a real target for a win-now team, not a fade the way Micah\'s plan treats him); Drake Maye (QB, real ADP ~8) as a first SF anchor.', why:'By pick 7, the true top tier (Gibbs/Bijan/Nacua/Chase/JSN/McCaffrey/St. Brown, all ADP under 7) is gone. Unlike Micah\'s plan, don\'t skip Taylor here &mdash; his age is a dynasty concern, not a 2026 one.', names:['De\'Von Achane','CeeDee Lamb','James Cook','Justin Jefferson','Drake Maye','Jonathan Taylor']},
+        {pk:'2.04', ov:'14th', primary:'Lamar Jackson (QB), A.J. Brown, Chris Olave, or Saquon Barkley (ADP ~18 &mdash; a legitimate target for Colby, 29.6 is fine for one season). Derrick Henry (ADP ~16) is more of a real caution than an outright avoid at 32.7 &mdash; workload risk, not a dynasty issue.', why:'Second anchor round &mdash; lock QB or a true WR1/RB1. This is the round where Colby\'s win-now board diverges most from Micah\'s dynasty-lean one.', names:['Lamar Jackson','A.J. Brown','Chris Olave','Derrick Henry','Saquon Barkley']},
+        {pk:'3.07', ov:'27th', primary:'Malik Nabers or Garrett Wilson &mdash; proven, productive now. Jeremiyah Love (ADP 26-27) is fine value here but don\'t reach for him the way Micah\'s dynasty plan does; he\'s an unproven rookie for a team that needs 2026 production.', why:'Same ADP window Micah gets one pick later, but the priority order shifts: proven WR production over rookie RB upside.', names:['Malik Nabers','Garrett Wilson','Jeremiyah Love']},
         {pk:'4.04', ov:'34th', primary:'Brock Bowers (TE1, prioritize) &mdash; real ADP ~35, lines up almost exactly here. Jalen Hurts, Emeka Egbuka, or Tee Higgins otherwise.', why:'Colby gets first real crack at Bowers before Micah\'s round 4 (37th) &mdash; a round-4 TE1 is a strong value if he\'s still on the board.', names:['Brock Bowers','Jalen Hurts','Emeka Egbuka','Tee Higgins']},
         {pk:'5.07', ov:'47th', primary:'D.J. Moore, Terry McLaurin, Quinshon Judkins depth; Trevor Lawrence QB depth (ADP ~51-52, close).', why:'Solid WR/RB depth round.', names:['D.J. Moore','Terry McLaurin','Quinshon Judkins','Trevor Lawrence']},
         {pk:'6.04', ov:'54th', primary:'Colston Loveland (TE2, prioritize, real ADP ~55 &mdash; right here) or Rome Odunze/David Montgomery.', why:'Second TE window, better odds than Micah\'s (his lands one round later at 57th).', names:['Colston Loveland','Rome Odunze','David Montgomery']},
@@ -660,12 +689,19 @@
     document.getElementById('slot-value').textContent = p.slot + ' of 10';
     document.getElementById('team-value').textContent = p.team + ' (' + p.owner + ')';
     document.getElementById('plan-note').textContent = p.label + ' · picks ' + p.picks[0] + '–' + p.picks[p.picks.length-1] + ' · built from real ADP, not raw board rank';
+    var stratEl = document.getElementById('plan-strategy-note');
+    if(stratEl){
+      stratEl.innerHTML = current === 'colby'
+        ? '<b style="color:var(--colby)">Colby\'s team plays to win 2026</b> &mdash; unlike Micah, Colby isn\'t banking on 2027+. Tags below are adjusted for that: some dynasty fades (aging-but-productive vets) become targets, some dynasty prioritizes (unproven rookie upside) get downgraded. Toggle back to Micah to see the dynasty-lean version of the same board.'
+        : '<b style="color:var(--micah)">Micah\'s plan leans 2027+</b> &mdash; Colby manages this roster solo after Micah deploys, so ties go to the younger asset. Colby\'s own team (toggle above) plays a different game: win 2026, tags adjust accordingly.';
+    }
     var chipsHtml = p.picks.map(function(pk, i){ return '<span class="pick-chip'+(draftedAtOverall(p.overalls[i])?' done':'')+'">'+pk+'</span>'; }).join('') + '<span class="pick-chip" style="opacity:.6">then alternating &rarr;</span>';
     document.getElementById('picks-row').innerHTML = chipsHtml;
     document.getElementById('plan-body').innerHTML = p.plan.map(function(r){
       return '<tr><td class="pk">'+r.pk+'</td><td class="ov">'+r.ov+'</td><td>'+strikeDrafted(r.primary, r.names)+'</td><td>'+r.why+'</td></tr>';
     }).join('');
     updatePlanLive();
+    renderBoard();
     try{ localStorage.setItem('cheatsheet-person', current); }catch(e){}
   }
   function draftedAtOverall(ov){ return totalPicksMade >= ov; }
